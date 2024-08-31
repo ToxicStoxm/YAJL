@@ -29,15 +29,29 @@ public class YAJLLogger implements Logger {
     private LogArea defaultLogArea;
     private final PrintStream out;
 
-    public static void main(String[] args) {
-        System.out.println("YAJL (Yet another Java logger) is a library and can't be used as a standalone!");
+    private static class TestBundle implements LogAreaBundle {
+
     }
 
-    public YAJLLogger(PrintStream out, LogArea defaultLogArea, boolean enableAreaWildcard) {
+    public static void main(String[] args) {
+        System.out.println("YAJL (Yet another Java logger) is a library and can't be used as a standalone!");
+        System.out.println("Running test:");
+        YAJLLogger logger = YAJLLogger.withArea(System.getProperty("user.home"), System.out, new YAJLLogArea(new Color(0, 120, 255)), new TestBundle(), true);
+        logger.debug("If you see this congrats!");
+        System.out.println("Test was successful!");
+    }
+
+    public YAJLLogger(String projectDir, PrintStream out, LogArea defaultLogArea, boolean enableAreaWildcard) {
         this.out = out;
         this.defaultLogArea = defaultLogArea;
 
-        settingsManager = YAJSISettingsManager.withConfigFile(new YAJSISettingsManager.ConfigFile("yajl-config.yaml", getClass().getResource("yajl-config.yaml")), YAJLSettingsBundle.class);
+        settingsManager = YAJSISettingsManager.withConfigFile(
+                new YAJSISettingsManager.ConfigFile(
+                        projectDir + "/yajl-config.yaml",
+                        getClass().getClassLoader().getResource("yajl-config.yaml")
+                ),
+                YAJLSettingsBundle.class
+        );
 
         logAreaManager = new YAJLLogAreaManger();
         if (enableAreaWildcard) logAreaManager.registerArea(new YAJLLogArea("ALL"));
@@ -45,16 +59,16 @@ public class YAJLLogger implements Logger {
         elementSpacer = new YAJLSpacer();
     }
 
-    public static YAJLLogger withAreas(PrintStream out, LogArea defaultLogArea, Collection<LogAreaBundle> logAreaBundles, boolean enableAreaWildcard) {
-        YAJLLogger logger = new YAJLLogger(out, defaultLogArea, enableAreaWildcard);
+    public static YAJLLogger withAreas(String projectDir, PrintStream out, LogArea defaultLogArea, Collection<LogAreaBundle> logAreaBundles, boolean enableAreaWildcard) {
+        YAJLLogger logger = new YAJLLogger(projectDir, out, defaultLogArea, enableAreaWildcard);
         for (LogAreaBundle logAreaBundle : logAreaBundles) {
             logger.logAreaManager.registerAreaBundle(logAreaBundle);
         }
 
         return logger;
     }
-    public static YAJLLogger withArea(PrintStream out, LogArea defaultLogArea, LogAreaBundle logAreaBundle, boolean enableAreaWildcard) {
-        YAJLLogger logger = new YAJLLogger(out, defaultLogArea, enableAreaWildcard);
+    public static YAJLLogger withArea(String projectDir, PrintStream out, LogArea defaultLogArea, LogAreaBundle logAreaBundle, boolean enableAreaWildcard) {
+        YAJLLogger logger = new YAJLLogger(projectDir, out, defaultLogArea, enableAreaWildcard);
         logger.logAreaManager.registerAreaBundle(logAreaBundle);
         return logger;
     }
