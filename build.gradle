@@ -1,0 +1,71 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+    id 'java-library'
+    id "com.vanniktech.maven.publish" version "0.29.0"
+}
+
+group = 'com.toxicstoxm'
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+
+    implementation 'org.jetbrains:annotations:24.1.0'
+    annotationProcessor 'org.jetbrains:annotations:24.1.0'
+
+    implementation 'com.toxicstoxm.YAJSI:YAJSI:1.3'
+
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.jar {
+    manifest {
+        attributes ["Main-Class"] = 'com.toxicstoxm.YAJL.YAJLLogger'
+    }
+}
+
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    signAllPublications()
+
+    coordinates("com.toxicstoxm.YAJL", "YAJL", "1.0")
+
+    pom {
+        name = "YAJL"
+        description = "YAJL (Yet another Java logger) is an easy to use logger that can take your project to the next level."
+        inceptionYear = "2024"
+        url = "https://github.com/ToxicStoxm/YAJL/"
+        licenses {
+            license {
+                name = "The GNU General Public License, Version 3.0"
+                url = "https://www.gnu.org/licenses/gpl-3.0.html"
+                distribution = "https://www.gnu.org/licenses/gpl-3.0.html"
+            }
+        }
+        developers {
+            developer {
+                id = "toxicstoxm"
+                name = "ToxicStoxm"
+                url = "https://github.com/ToxicStoxm/"
+            }
+        }
+        scm {
+            url = "https://github.com/ToxicStoxm/YAJL/"
+            connection = "scm:git:git://github.com/ToxicStoxm/YAJL.git"
+            developerConnection = "scm:git:ssh://git@github.com/ToxicStoxm/YAJL.git"
+        }
+    }
+}
