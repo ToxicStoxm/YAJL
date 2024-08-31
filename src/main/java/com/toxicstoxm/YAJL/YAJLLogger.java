@@ -37,7 +37,7 @@ public class YAJLLogger implements Logger {
         this.out = out;
         this.defaultLogArea = defaultLogArea;
 
-        settingsManager = YAJSISettingsManager.withConfigFile("config.yaml", YAJLSettingsBundle.class);
+        settingsManager = YAJSISettingsManager.withConfigFile(new YAJSISettingsManager.ConfigFile("yajl-config.yaml", getClass().getResource("yajl-config.yaml")), YAJLSettingsBundle.class);
 
         logAreaManager = new YAJLLogAreaManger();
         if (enableAreaWildcard) logAreaManager.registerArea(new YAJLLogArea("ALL"));
