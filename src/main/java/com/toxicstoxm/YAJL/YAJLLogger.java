@@ -5,7 +5,7 @@ import com.toxicstoxm.YAJL.colors.ColorConverter;
 import com.toxicstoxm.YAJL.colors.YAJLMessage;
 import com.toxicstoxm.YAJL.levels.YAJLLogLevels;
 import com.toxicstoxm.YAJL.levels.LogLevel;
-import com.toxicstoxm.YAJSI.YAJSISettingsManager;
+import com.toxicstoxm.YAJSI.api.settings.YAJSISettingsManager;
 import lombok.NonNull;
 
 import java.awt.*;
