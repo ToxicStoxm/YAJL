@@ -23,6 +23,17 @@ public class YAJLSettingsBundle implements SettingsBundle {
         }
     }
 
+    @YAMLSetting(path = "Logger.Enable-Newline-Support")
+    public static class EnableNewlineSupport extends YAJSISetting<Boolean> {
+        @Getter
+        private static EnableNewlineSupport instance;
+
+        public EnableNewlineSupport(Setting<Object> setting) {
+            super(setting, Boolean.class);
+            instance = this;
+        }
+    }
+
     @YAMLSetting(path = "Logger.On-Demand-Trace.Enable")
     public static class EnableOnDemandLogger extends YAJSISetting<Boolean> {
         @Getter

@@ -1,5 +1,7 @@
 Logger:
   Enable: true
+  # print the logger prefix after each newline
+  Enable-Newline-Support: true
   On-Demand-Trace:
     Enable: true
     Trace-Buffer-Limit: 100

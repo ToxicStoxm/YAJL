@@ -37,7 +37,7 @@ public class YAJLLogger implements Logger {
         System.out.println("YAJL (Yet another Java logger) is a library and can't be used as a standalone!");
         System.out.println("Running test:");
         YAJLLogger logger = YAJLLogger.withArea(System.getProperty("user.home"), System.out, new YAJLLogArea(new Color(0, 120, 255)), new TestBundle(), true);
-        logger.debug("If you see this congrats!");
+        logger.debug("     If you see this congrats!       \n     If you see this double congrats!      ");
         System.out.println("Test was successful!");
     }
 
@@ -268,48 +268,50 @@ public class YAJLLogger implements Logger {
         if (logArea == null || logArea.getColor() == null) logArea = defaultLogArea;
 
         if (logLevel.isEnabled() && logAreaManager.isAreaEnabled(logArea)) {
-            log(
-                    YAJLMessage.builder()
-                            .text(
-                                    elementSpacer.getSpacingFor("timestamp","[" + getTimestamp() + "]")
-                            )
-                            .color(
-                                    EnableTrace.getInstance().get() &&
-                                            EnableColorCoding.getInstance().get(),
-                                    TraceColor.getInstance().get()
-                            )
-                            .text(
-                                    EnableTrace.getInstance().get(),
-                                    elementSpacer.getSpacingFor("trace", "[" + getTrace() + "]")
-                            )
-                            .reset(EnableTrace.getInstance().get())
-                            .color(
-                                    EnableColorCoding.getInstance().get(),
-                                    logLevel.getColor()
-                            )
+            for (String messageLine : message.split("\n")) {
+                log(
+                        YAJLMessage.builder()
+                                .text(
+                                        elementSpacer.getSpacingFor("timestamp", "[" + getTimestamp() + "]")
+                                )
+                                .color(
+                                        EnableTrace.getInstance().get() &&
+                                                EnableColorCoding.getInstance().get(),
+                                        TraceColor.getInstance().get()
+                                )
+                                .text(
+                                        EnableTrace.getInstance().get(),
+                                        elementSpacer.getSpacingFor("trace", "[" + getTrace() + "]")
+                                )
+                                .reset(EnableTrace.getInstance().get())
+                                .color(
+                                        EnableColorCoding.getInstance().get(),
+                                        logLevel.getColor()
+                                )
 
-                            .text(
-                                    elementSpacer.getSpacingFor("level", "[" + logLevel.getText() + "]")
-                            )
-                            .reset()
-                            .color(
-                                    EnableAreas.getInstance().get() &&
-                                            EnableColorCoding.getInstance().get(),
-                                    logArea.getColor()
-                            )
-                            .text(
-                                    EnableAreas.getInstance().get(),
-                                   elementSpacer.getSpacingFor("area", "[" + logArea.getName() + "]" + Separator.getInstance().get())
-                            )
-                            .reset(EnableAreas.getInstance().get())
-                            .color(
-                                    EnableColorCoding.getInstance().get(),
-                                    computeColor(logLevel, logArea)
-                            )
-                            .text(message)
-                            .reset()
-                            .build()
-            );
+                                .text(
+                                        elementSpacer.getSpacingFor("level", "[" + logLevel.getText() + "]")
+                                )
+                                .reset()
+                                .color(
+                                        EnableAreas.getInstance().get() &&
+                                                EnableColorCoding.getInstance().get(),
+                                        logArea.getColor()
+                                )
+                                .text(
+                                        EnableAreas.getInstance().get(),
+                                        elementSpacer.getSpacingFor("area", "[" + logArea.getName() + "]" + Separator.getInstance().get())
+                                )
+                                .reset(EnableAreas.getInstance().get())
+                                .color(
+                                        EnableColorCoding.getInstance().get(),
+                                        computeColor(logLevel, logArea)
+                                )
+                                .text(messageLine.replace("\n","").strip())
+                                .reset()
+                                .build()
+                );
+            }
         }
     }
 
