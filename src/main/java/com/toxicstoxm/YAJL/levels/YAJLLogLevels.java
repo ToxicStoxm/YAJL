@@ -1,48 +1,77 @@
 package com.toxicstoxm.YAJL.levels;
 
-import java.awt.*;
+import com.toxicstoxm.YAJL.YAJLSettingsBundle;
+import com.toxicstoxm.YAJL.colors.ColorConverter;
 
 public class YAJLLogLevels {
 
     public static class Fatal extends YAJLLogLevel {
-        public Fatal(boolean enabled, String text, Color color) {
-            super(enabled, text, color);
+        public Fatal() {
+            super(
+                    YAJLSettingsBundle.EnableFatalLevel.getInstance().get(),
+                    YAJLSettingsBundle.FatalText.getInstance().get(),
+                    ColorConverter.getColorFromHex(YAJLSettingsBundle.FatalColor.getInstance().get())
+            );
         }
     }
 
     public static class Error extends YAJLLogLevel {
-        public Error(boolean enabled, String text, Color color) {
-            super(enabled, text, color);
+        public Error() {
+            super(
+                    YAJLSettingsBundle.EnableErrorLevel.getInstance().get(),
+                    YAJLSettingsBundle.ErrorText.getInstance().get(),
+                    ColorConverter.getColorFromHex(YAJLSettingsBundle.ErrorColor.getInstance().get())
+            );
         }
     }
 
     public static class Warn extends YAJLLogLevel {
-        public Warn(boolean enabled, String text, Color color) {
-            super(enabled, text, color);
+        public Warn() {
+            super(
+                    YAJLSettingsBundle.EnableWarnLevel.getInstance().get(),
+                    YAJLSettingsBundle.WarnText.getInstance().get(),
+                    ColorConverter.getColorFromHex(YAJLSettingsBundle.WarnColor.getInstance().get())
+            );
         }
     }
 
     public static class Info extends YAJLLogLevel {
-        public Info(boolean enabled, String text, Color color) {
-            super(enabled, text, color);
+        public Info() {
+            super(
+                    YAJLSettingsBundle.EnableInfoLevel.getInstance().get(),
+                    YAJLSettingsBundle.InfoText.getInstance().get(),
+                    ColorConverter.getColorFromHex(YAJLSettingsBundle.InfoColor.getInstance().get())
+            );
         }
     }
 
     public static class Debug extends YAJLLogLevel {
-        public Debug(boolean enabled, String text, Color color) {
-            super(enabled, text, color);
+        public Debug() {
+            super(
+                    YAJLSettingsBundle.EnableDebugLevel.getInstance().get(),
+                    YAJLSettingsBundle.DebugText.getInstance().get(),
+                    ColorConverter.getColorFromHex(YAJLSettingsBundle.DebugColor.getInstance().get())
+            );
         }
     }
 
     public static class Verbose extends YAJLLogLevel {
-        public Verbose(boolean enabled, String text, Color color) {
-            super(enabled, text, color);
+        public Verbose() {
+            super(
+                    YAJLSettingsBundle.EnableVerboseLevel.getInstance().get(),
+                    YAJLSettingsBundle.VerboseText.getInstance().get(),
+                    ColorConverter.getColorFromHex(YAJLSettingsBundle.VerboseColor.getInstance().get())
+            );
         }
     }
 
     public static class Stacktrace extends YAJLLogLevel {
-        public Stacktrace(boolean enabled, String text, Color color) {
-            super(enabled, text, color);
+        public Stacktrace() {
+            super(
+                    YAJLSettingsBundle.EnableStacktraceLevel.getInstance().get(),
+                    YAJLSettingsBundle.StacktraceText.getInstance().get(),
+                    ColorConverter.getColorFromHex(YAJLSettingsBundle.StacktraceColor.getInstance().get())
+            );
         }
     }
 }

@@ -1,14 +1,15 @@
 package com.toxicstoxm.YAJL;
 
 import com.toxicstoxm.YAJL.areas.LogArea;
+import com.toxicstoxm.YAJL.levels.LogLevel;
 
 public interface Logger {
 
     default void setDefaultLogArea(LogArea logArea) {
-        unsupportedOperation();    }
+        unsupportedLogArea();   }
 
     default LogArea getDefaultLogArea() {
-        unsupportedOperation();
+        unsupportedLogArea();
         return null;
     }
 
@@ -33,31 +34,36 @@ public interface Logger {
     default void stacktrace(String message) {
         log("[STACKTRACE]: " + message);
     }
+    default void log(String message, LogLevel level, LogArea area) {unsupportedOperation("custom log function");}
 
     default void fatal(String message, LogArea area) {
-        unsupportedOperation();
+        unsupportedLogArea();
     }
     default void error(String message, LogArea area) {
-        unsupportedOperation();
+        unsupportedLogArea();
     }
     default void warn(String message, LogArea area) {
-        unsupportedOperation();
+        unsupportedLogArea();
     }
     default void info(String message, LogArea area) {
-        unsupportedOperation();
+        unsupportedLogArea();
     }
     default void debug(String message, LogArea area) {
-        unsupportedOperation();
+        unsupportedLogArea();
     }
     default void verbose(String message, LogArea area) {
-        unsupportedOperation();
+        unsupportedLogArea();
     }
     default void stacktrace(String message, LogArea area) {
-        unsupportedOperation();
+        unsupportedLogArea();
     }
 
-    default void unsupportedOperation() {
-        throw new UnsupportedOperationException("This logger implementation does not support log areas!");
+    default void unsupportedLogArea() {
+        unsupportedOperation("log areas");
+    }
+
+    default void unsupportedOperation(String message) {
+        throw new UnsupportedOperationException("This logger implementation does not support " + message + "!");
     }
 
     void log(String message);

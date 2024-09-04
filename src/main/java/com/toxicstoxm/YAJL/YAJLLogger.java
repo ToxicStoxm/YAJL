@@ -6,14 +6,13 @@ import com.toxicstoxm.YAJL.colors.YAJLMessage;
 import com.toxicstoxm.YAJL.levels.YAJLLogLevels;
 import com.toxicstoxm.YAJL.levels.LogLevel;
 import com.toxicstoxm.YAJSI.api.settings.YAJSISettingsManager;
+import lombok.Getter;
 import lombok.NonNull;
 
 import java.awt.*;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.List;
 
 import static com.toxicstoxm.YAJL.YAJLSettingsBundle.*;
@@ -27,11 +26,17 @@ public class YAJLLogger implements Logger {
     public YAJSISettingsManager settingsManager;
 
     private LogArea defaultLogArea;
-    private final PrintStream out;
+    private PrintStream out;
 
-    private static class TestBundle implements LogAreaBundle {
+    @Getter
+    private boolean showSettingsLog = false;
+    public record LogMeta(LogLevel level, LogArea area) {}
+    @Getter
+    private LogMeta yajsiLogMeta = null;
 
-    }
+    private boolean initialized = true;
+
+    private static class TestBundle implements LogAreaBundle {}
 
     public static void main(String[] args) {
         System.out.println("YAJL (Yet another Java logger) is a library and can't be used as a standalone!");
@@ -41,22 +46,50 @@ public class YAJLLogger implements Logger {
         System.out.println("Test was successful!");
     }
 
+    private YAJLLogger() {
+        initialized = false;
+    }
+
+    private void setShowSettingsLog(boolean showSettingsLog) {
+        this.showSettingsLog = showSettingsLog;
+    }
+    private void setYajsiLogMeta(LogMeta logMeta) {
+        this.yajsiLogMeta = logMeta;
+    }
+
     public YAJLLogger(String projectDir, PrintStream out, LogArea defaultLogArea, boolean enableAreaWildcard) {
+       init(projectDir, out, defaultLogArea, enableAreaWildcard);
+    }
+
+    public void init(String projectDir, PrintStream out, LogArea defaultLogArea, boolean enableAreaWildcard) {
         this.out = out;
         this.defaultLogArea = defaultLogArea;
 
-        settingsManager = YAJSISettingsManager.withConfigFile(
+        if (settingsManager == null) {
+            settingsManager = YAJSISettingsManager.builder()
+                    .buildWithConfigFile(
+                            new YAJSISettingsManager.ConfigFile(
+                                    projectDir + "/yajl-config.yaml",
+                                    getClass().getClassLoader().getResource("yajl-config.yaml")
+                            ),
+                            YAJLSettingsBundle.class
+                    );
+        } else settingsManager = settingsManager
+                .addConfigFile(new YAJSISettingsManager.YAMLConfig(
                 new YAJSISettingsManager.ConfigFile(
                         projectDir + "/yajl-config.yaml",
                         getClass().getClassLoader().getResource("yajl-config.yaml")
                 ),
                 YAJLSettingsBundle.class
-        );
-
+        ));
         logAreaManager = new YAJLLogAreaManger();
         if (enableAreaWildcard) logAreaManager.registerArea(new YAJLLogArea("ALL"));
         logAreaManager.enableAreasByName(ShownAreas.getInstance().get());
         elementSpacer = new YAJLSpacer();
+    }
+
+    public void saveSettings() {
+        settingsManager.save();
     }
 
     public static YAJLLogger withAreas(String projectDir, PrintStream out, LogArea defaultLogArea, Collection<LogAreaBundle> logAreaBundles, boolean enableAreaWildcard) {
@@ -73,10 +106,59 @@ public class YAJLLogger implements Logger {
         return logger;
     }
 
-    public void setEnableAreaWildcard(boolean enableAreaWildcard) {
+    @Deprecated(forRemoval = true)
+    public com.toxicstoxm.YAJSI.api.logging.Logger getYAJSILogImpl() {
+        return settingsManager.getLogger();
+    }
+
+    // factory methods
+
+    public static YAJLLogger builder() {
+        return new YAJLLogger();
+    }
+
+    public YAJLLogger setSettingsManager(YAJSISettingsManager settingsManager) {
+        this.settingsManager = settingsManager;
+        return this;
+    }
+
+    public YAJLLogger configureYajsiLog(boolean showSettingsLog, LogMeta logMeta) {
+        if (initialized) {
+            setShowSettingsLog(showSettingsLog);
+            setYajsiLogMeta(logMeta);
+            settingsManager.getMessages().forEach(message -> {
+                if (showSettingsLog) log(message, yajsiLogMeta.level, yajsiLogMeta.area);
+            });
+            settingsManager.setLoggingImplementation(message -> {if (showSettingsLog) log(message, logMeta.level, logMeta.area);});
+        }
+        return this;
+    }
+
+    public YAJLLogger buildWithAreas(String projectDir, PrintStream out, LogArea defaultLogArea, Collection<LogAreaBundle> logAreaBundles, boolean enableAreaWildcard) {
+        build(projectDir, out, defaultLogArea, enableAreaWildcard);
+        for (LogAreaBundle logAreaBundle : logAreaBundles) {
+            logAreaManager.registerAreaBundle(logAreaBundle);
+        }
+        return this;
+    }
+    public YAJLLogger buildWithArea(String projectDir, PrintStream out, LogArea defaultLogArea, LogAreaBundle logAreaBundle, boolean enableAreaWildcard) {
+        build(projectDir, out, defaultLogArea, enableAreaWildcard).registerLogAreaBundle(logAreaBundle);
+        return this;
+    }
+
+    public YAJLLogger setEnableAreaWildcard(boolean enableAreaWildcard) {
         if (enableAreaWildcard) logAreaManager.registerArea(new YAJLLogArea("ALL"));
         else logAreaManager.unregisterArea(new YAJLLogArea("ALL"));
+        return this;
     }
+
+    public YAJLLogger build(String projectDir, PrintStream out, LogArea defaultLogArea, boolean enableAreaWildcard) {
+        initialized = true;
+        init(projectDir, out, defaultLogArea, enableAreaWildcard);
+        return this;
+    }
+
+    // log are registering and unregistering logic
 
     public void registerLogAreaBundle(LogAreaBundle logAreaBundle) {
         logAreaManager.registerAreaBundle(logAreaBundle);
@@ -149,15 +231,23 @@ public class YAJLLogger implements Logger {
     }
 
     @Override
+    public void log(String message, LogLevel level, LogArea area) {
+        if (isLoggerDisabled()) return;
+        assembleLogMessage(
+                new LogMessageBluePrint(
+                        level,
+                        area,
+                        message
+                )
+        );
+    }
+
+    @Override
     public void fatal(String message, LogArea area) {
         if (isLoggerDisabled()) return;
         assembleLogMessage(
                 new LogMessageBluePrint(
-                        new YAJLLogLevels.Fatal(
-                                EnableFatalLevel.getInstance().get(),
-                                FatalText.getInstance().get(),
-                                ColorConverter.getColorFromHex(FatalColor.getInstance().get())
-                        ),
+                        new YAJLLogLevels.Fatal(),
                         area,
                         message
                 )
@@ -169,11 +259,7 @@ public class YAJLLogger implements Logger {
         if (isLoggerDisabled()) return;
         assembleLogMessage(
                 new LogMessageBluePrint(
-                        new YAJLLogLevels.Error(
-                                EnableErrorLevel.getInstance().get(),
-                                ErrorText.getInstance().get(),
-                                ColorConverter.getColorFromHex(ErrorColor.getInstance().get())
-                        ),
+                        new YAJLLogLevels.Error(),
                         area,
                         message
                 )
@@ -185,11 +271,7 @@ public class YAJLLogger implements Logger {
         if (isLoggerDisabled()) return;
         assembleLogMessage(
                 new LogMessageBluePrint(
-                        new YAJLLogLevels.Warn(
-                                EnableWarnLevel.getInstance().get(),
-                                WarnText.getInstance().get(),
-                                ColorConverter.getColorFromHex(WarnColor.getInstance().get())
-                        ),
+                        new YAJLLogLevels.Warn(),
                         area,
                         message
                 )
@@ -201,11 +283,7 @@ public class YAJLLogger implements Logger {
         if (isLoggerDisabled()) return;
         assembleLogMessage(
                 new LogMessageBluePrint(
-                        new YAJLLogLevels.Info(
-                                EnableInfoLevel.getInstance().get(),
-                                InfoText.getInstance().get(),
-                                ColorConverter.getColorFromHex(InfoColor.getInstance().get())
-                        ),
+                        new YAJLLogLevels.Info(),
                         area,
                         message
                 )
@@ -217,11 +295,7 @@ public class YAJLLogger implements Logger {
         if (isLoggerDisabled()) return;
         assembleLogMessage(
                 new LogMessageBluePrint(
-                        new YAJLLogLevels.Debug(
-                                EnableDebugLevel.getInstance().get(),
-                                DebugText.getInstance().get(),
-                                ColorConverter.getColorFromHex(DebugColor.getInstance().get())
-                        ),
+                        new YAJLLogLevels.Debug(),
                         area,
                         message
                 )
@@ -233,11 +307,7 @@ public class YAJLLogger implements Logger {
         if (isLoggerDisabled()) return;
         assembleLogMessage(
                 new LogMessageBluePrint(
-                        new YAJLLogLevels.Verbose(
-                                EnableVerboseLevel.getInstance().get(),
-                                VerboseText.getInstance().get(),
-                                ColorConverter.getColorFromHex(VerboseColor.getInstance().get())
-                        ),
+                        new YAJLLogLevels.Verbose(),
                         area,
                         message
                 )
@@ -249,11 +319,7 @@ public class YAJLLogger implements Logger {
         if (isLoggerDisabled()) return;
         assembleLogMessage(
                 new LogMessageBluePrint(
-                        new YAJLLogLevels.Stacktrace(
-                                EnableStacktraceLevel.getInstance().get(),
-                                StacktraceText.getInstance().get(),
-                                ColorConverter.getColorFromHex(StacktraceColor.getInstance().get())
-                        ),
+                        new YAJLLogLevels.Stacktrace(),
                         area,
                         message
                 )
@@ -361,6 +427,7 @@ public class YAJLLogger implements Logger {
 
     @Override
     public void log(String message) {
+        if (!initialized) throw new RuntimeException(Arrays.stream(getClass().getName().split("\\.")).toList().getLast() + " wasn't initialized properly!");
         if (isLoggerDisabled()) return;
         out.println(message);
         out.flush();
