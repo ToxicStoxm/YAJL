@@ -377,7 +377,7 @@ public class YAJLLogger implements Logger {
                                 .reset()
                                 .build()
                 );
-                if (EnableNewlineSupport.getInstance().get()) break;
+                if (!EnableNewlineSupport.getInstance().get()) break;
             }
         }
     }
