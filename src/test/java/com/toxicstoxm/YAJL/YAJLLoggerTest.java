@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.*;
 import java.io.*;
+import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class YAJLLoggerTest {
-
-
 
     public static String tmpDir = System.getenv("XDG_CACHE_HOME") == null ?
             System.getProperty("java.io.tmpdir") + "/LEDSuite/" :
@@ -30,16 +30,27 @@ class YAJLLoggerTest {
     }
 
     private final YAJLLogger testLogger;
-    private final ByteArrayOutputStream testStream;
-    private final String test = "Test";
-    private final String projectDir = tmpDir;
+    private final ByteArrayOutputStream testOutputStream;
+    private final String testProjectDir = tmpDir;
+    private final String testMessage = "Test";
+    private final URL testConfigPath = getClass().getClassLoader().getResource("yajl-config.test.yaml");
+    private final String testAreaName = Arrays.stream(TestBundle.TestArea.class.getName().split("\\.")).toList().getLast();
+
+    private final String fatal = "FATAL";
+    private final String error = "ERROR";
+    private final String warn = "WARN";
+    private final String info = "INFO";
+    private final String debug = "DEBUG";
+    private final String verbose = "VERBOSE";
+    private final String stacktrace = "STACKTRACE";
+
 
     public YAJLLoggerTest() {
-        testStream = new ByteArrayOutputStream();
+        testOutputStream = new ByteArrayOutputStream();
         testLogger = YAJLLogger.builder()
                 .build(
-                        projectDir,
-                        new PrintStream(testStream),
+                        testProjectDir,
+                        new PrintStream(testOutputStream),
                         new TestBundle.TestArea(),
                         true
                 );
@@ -56,27 +67,28 @@ class YAJLLoggerTest {
                 .build(
                         Collections.singleton(new YAJSISettingsManager.YAMLConfig(
                                 new YAJSISettingsManager.ConfigFile(
-                                        projectDir,
-                                        getClass().getClassLoader().getResource("yajl-config.yaml")
+                                        testProjectDir,
+                                        testConfigPath
                                 ),
                                 YAJLSettingsBundle.class
                         ))
                 );
         YAJLLogger logger = YAJLLogger.builder().setSettingsManager(settingsManager);
         assertEquals(settingsManager, logger.settingsManager);
-        assertThrows(RuntimeException.class, () -> logger.log("Test"));
+        assertThrows(RuntimeException.class, () -> logger.log(testMessage));
     }
 
     @Test
     void setEnableAreaWildcard() {
         testLogger.registerLogAreaBundle(new TestBundle());
-        testLogger.info("", new TestBundle.TestArea());
-        assertTrue(testStream.toString().contains("TestArea"));
+        testLogger.info(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(testAreaName));
     }
 
     @Test
     void build() {
-        assertDoesNotThrow(() -> testLogger.log("Test"));
+        assertDoesNotThrow(() -> testLogger.log(testMessage));
     }
 
     @Test
@@ -86,113 +98,113 @@ class YAJLLoggerTest {
 
     @Test
     void fatal() {
-        testLogger.fatal(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("FATAL"));
+        testLogger.fatal(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(fatal));
     }
 
     @Test
     void error() {
-        testLogger.error(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("ERROR"));
+        testLogger.error(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(error));
     }
 
     @Test
     void warn() {
-        testLogger.warn(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("WARN"));
+        testLogger.warn(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(warn));
     }
 
     @Test
     void info() {
-        testLogger.info(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("INFO"));
+        testLogger.info(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(info));
     }
 
     @Test
     void debug() {
-        testLogger.debug(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("DEBUG"));
+        testLogger.debug(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(debug));
     }
 
     @Test
     void verbose() {
-        testLogger.verbose(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("VERBOSE"));
+        testLogger.verbose(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(verbose));
     }
 
     @Test
     void stacktrace() {
-        testLogger.stacktrace(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("STACKTRACE"));
+        testLogger.stacktrace(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(stacktrace));
     }
 
     @Test
     void log() {
-        testLogger.log(test, new YAJLLogLevels.Info(), new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("INFO") && result.contains("TestArea"));
+        testLogger.log(testMessage, new YAJLLogLevels.Info(), new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(info) && result.contains(testAreaName));
     }
 
     @Test
     void testFatal() {
-        testLogger.fatal(test, new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("FATAL") && result.contains("TestArea"));
+        testLogger.fatal(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(fatal) && result.contains(testAreaName));
     }
 
     @Test
     void testError() {
-        testLogger.error(test, new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("ERROR") && result.contains("TestArea"));
+        testLogger.error(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(error) && result.contains(testAreaName));
     }
 
     @Test
     void testWarn() {
-        testLogger.warn(test, new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("WARN") && result.contains("TestArea"));
+        testLogger.warn(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(warn) && result.contains(testAreaName));
     }
 
     @Test
     void testInfo() {
-        testLogger.info(test, new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("INFO") && result.contains("TestArea"));
+        testLogger.info(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(info) && result.contains(testAreaName));
     }
 
     @Test
     void testDebug() {
-        testLogger.debug(test, new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("DEBUG") && result.contains("TestArea"));
+        testLogger.debug(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(debug) && result.contains(testAreaName));
     }
 
     @Test
     void testVerbose() {
-        testLogger.verbose(test, new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("VERBOSE") && result.contains("TestArea"));
+        testLogger.verbose(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(verbose) && result.contains(testAreaName));
     }
 
     @Test
     void testStacktrace() {
-        testLogger.stacktrace(test, new TestBundle.TestArea());
-        String result = testStream.toString();
-        assertTrue(result.contains(test) && result.contains("STACKTRACE") && result.contains("TestArea"));
+        testLogger.stacktrace(testMessage, new TestBundle.TestArea());
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage) && result.contains(stacktrace) && result.contains(testAreaName));
     }
 
     @Test
     void testLog() {
-        testLogger.log(test);
-        String result = testStream.toString();
-        assertTrue(result.contains(test));
+        testLogger.log(testMessage);
+        String result = testOutputStream.toString();
+        assertTrue(result.contains(testMessage));
     }
 }
