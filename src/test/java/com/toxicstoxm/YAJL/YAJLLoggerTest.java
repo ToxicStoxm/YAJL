@@ -19,21 +19,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class YAJLLoggerTest {
 
-    public static String tmpDir = System.getenv("XDG_CACHE_HOME") == null ?
+    private final String testProjectDir = System.getenv("XDG_CACHE_HOME") == null ?
             System.getProperty("java.io.tmpdir") + "/LEDSuite/" :
             System.getenv("XDG_CACHE_HOME") + "/";
 
-    private static class TestBundle implements LogAreaBundle {
-        public static class TestArea extends YAJLLogArea {
-            public TestArea() {
-                super(new Color(140, 140, 140));
-            }
-        }
-    }
-
     private final YAJLLogger testLogger;
     private final ByteArrayOutputStream testOutputStream;
-    private final String testProjectDir = tmpDir;
     private final String testMessage = "YAJL is cool :)! \n by ToxicStoxm \n ._. ._. ._. \n something really funny";
     private final List<String> expectedMessages = List.of("YAJL is cool :)!", "by ToxicStoxm", "._. ._. ._.", "something really funny");
     private final URL testConfigPath = getClass().getClassLoader().getResource("yajl-config.test.yaml");
@@ -46,6 +37,14 @@ class YAJLLoggerTest {
     private final String debug = "DEBUG";
     private final String verbose = "VERBOSE";
     private final String stacktrace = "STACKTRACE";
+
+    private static class TestBundle implements LogAreaBundle {
+        public static class TestArea extends YAJLLogArea {
+            public TestArea() {
+                super(new Color(140, 140, 140));
+            }
+        }
+    }
 
     public YAJLLoggerTest() {
         testOutputStream = new ByteArrayOutputStream();
