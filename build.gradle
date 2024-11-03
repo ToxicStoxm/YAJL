@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.toxicstoxm'
-version = '1.4.2'
+version = '1.4.3'
 
 repositories {
     mavenCentral()
@@ -22,7 +22,7 @@ dependencies {
 
     implementation 'org.yaml:snakeyaml:2.3'
 
-    implementation 'com.toxicstoxm.YAJSI:YAJSI:1.6.1'
+    implementation 'com.toxicstoxm.YAJSI:YAJSI:1.6.3'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
