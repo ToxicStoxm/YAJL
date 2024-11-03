@@ -373,7 +373,7 @@ public class YAJLLogger implements Logger {
                                         EnableColorCoding.getInstance().get(),
                                         computeColor(logLevel, logArea)
                                 )
-                                .text(EnableNewlineSupport.getInstance().get() ? messageLine.replace("\n","").strip() : message)
+                                .text(EnableNewlineSupport.getInstance().get() ? messageLine.replace("\n","") : message)
                                 .reset()
                                 .build()
                 );
