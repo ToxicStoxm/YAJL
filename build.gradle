@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.toxicstoxm'
-version = '1.4.3'
+version = '2.0.0'
 
 repositories {
     mavenCentral()
@@ -22,7 +22,7 @@ dependencies {
 
     implementation 'org.yaml:snakeyaml:2.3'
 
-    implementation 'com.toxicstoxm.YAJSI:YAJSI:1.6.3'
+    implementation 'com.toxicstoxm.YAJSI:YAJSI:2.0.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -78,16 +78,16 @@ mavenPublishing {
             developerConnection = "scm:git:ssh://git@github.com/ToxicStoxm/YAJL.git"
         }
     }
+}
 
-    tasks.register('fatJar', Jar) {
-        manifest {
-            attributes ["Main-Class"] = 'com.toxicstoxm.YAJL.YAJLLogger'
-        }
-
-        archiveBaseName = "${rootProject.name}-fat"
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-        from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-        with jar
+tasks.register('fatJar', Jar) {
+    manifest {
+        attributes ["Main-Class"] = 'com.toxicstoxm.YAJL.YAJLLogger'
     }
+
+    archiveBaseName = "${rootProject.name}-fat"
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
