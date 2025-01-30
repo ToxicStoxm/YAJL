@@ -22,14 +22,41 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
 
     static {
         placeholderHandlers.put("time", args -> {
-            String format = args.getOrDefault("format", "HH:mm:ss");
+            String format = args.getOrDefault("format", () -> "HH:mm:ss").getData();
             return java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern(format));
         });
-        placeholderHandlers.put("level", args -> args.getOrDefault("level", YAJLManager.getInstance().config.getDefaultLogLevel().getName()));
-        placeholderHandlers.put("levelColor", args -> args.getOrDefault("levelColor", ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())));
-        placeholderHandlers.put("message", args -> args.getOrDefault("message", ""));
-        placeholderHandlers.put("prefix", args -> args.getOrDefault("prefix", "YAJL"));
-        placeholderHandlers.put("color", args -> ColorTools.toAnsi(Color.decode(args.getOrDefault("hex", "#FFFFFF"))));
+        placeholderHandlers.put("level", args -> args.getOrDefault("level", () -> YAJLManager.getInstance().config.getDefaultLogLevel().getName()).getData());
+        placeholderHandlers.put("levelColor", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return args.getOrDefault("levelColor", () -> ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())).getData();
+
+            } else {
+                return "";
+            }
+        });
+        placeholderHandlers.put("message", args -> args.getOrDefault("message", () -> "").getData());
+        placeholderHandlers.put("prefix", args -> args.getOrDefault("prefix", () -> "YAJL").getData());
+        placeholderHandlers.put("color", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return ColorTools.toAnsi(Color.decode(args.getOrDefault("hex", () -> "#FFFFFF").getData()));
+            } else {
+                return "";
+            }
+        });
+        placeholderHandlers.put("trace", args -> {
+            StringBuilder finalTrace = new StringBuilder();
+            if (args.containsKey("class")) {
+                finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData());
+            }
+            if (args.containsKey("method") || args.containsKey("function")) {
+                finalTrace.append(":").append(args.getOrDefault("traceMethod", () -> "Unknown").getData());
+            }
+            if (args.containsKey("lineNumber") || args.containsKey("line")) {
+                finalTrace.append(":").append(args.getOrDefault("traceLineNumber", () -> "0").getData());
+            }
+
+            return finalTrace.toString();
+        });
     }
 
     /**
@@ -86,7 +113,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
     }
 
     public void debug(Object object) {
-        log(LogLevels.DEBUG, object == null ? "null" : object.toString());
+        log(LogLevels.DEBUG, object == null ? "null" : "{}", object);
     }
 
     public void debug(String message, Object... objects) {
@@ -158,21 +185,27 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         logException(LogLevels.FATAL, exception);
     }
 
+
     public void log(@NotNull LogLevel logLevel, String message) {
+        if (YAJLManager.getInstance().config.isMuteLogger()) return;
 
         String messageLayout = YAJLManager.getInstance().config.getLogMessageLayout();
 
-        Map<String, String> args = new HashMap<>();
+        Map<String, StringPlaceholder> args = new HashMap<>();
 
-        args.put("level", logLevel.getName());
-        args.put("levelColor", ColorTools.toAnsi(logLevel.getColor()));
-        args.put("message", message);
-        args.put("prefix", logPrefix);
+        args.put("level", logLevel::getName);
+        args.put("levelColor", () -> ColorTools.toAnsi(logLevel.getColor()));
+        args.put("message", () -> message);
+        args.put("prefix", () -> logPrefix);
+        args.put("trace", () -> TraceTools.getCallerTraceFormatted(true, true, true));
+        args.put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
+        args.put("traceClass", () -> TraceTools.getCallerTraceFormatted(true, false, false));
+        args.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
 
         System.out.println(processLogMessage(messageLayout, args) + ColorTools.resetAnsi());
     }
 
-    public String processLogMessage(String layout, Map<String, String> args) {
+    public String processLogMessage(String layout, Map<String, StringPlaceholder> args) {
         Pattern pattern = Pattern.compile("\\{(\\w+)(?::([^}]*))?}"); // Matches {placeholder:arg1,arg2,...}
         Matcher matcher = pattern.matcher(layout);
 
@@ -182,11 +215,11 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
             String key = matcher.group(1);
             String rawArgs = matcher.group(2);
 
-            Map<String, String> argMap = new HashMap<>(args);
+            Map<String, StringPlaceholder> argMap = new HashMap<>(args);
             if (rawArgs != null) {
                 for (String arg : rawArgs.split(",")) {
                     String[] kv = arg.split("=");
-                    argMap.put(kv[0], kv.length > 1 ? kv[1] : "");
+                    argMap.put(kv[0], () -> kv.length > 1 ? kv[1] : "");
                 }
             }
 
@@ -201,6 +234,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
 
 
     public void log(@NotNull LogLevel logLevel, String message, Object... objects) {
+        if (YAJLManager.getInstance().config.isMuteLogger()) return;
         log(logLevel, format(message, objects));
     }
 

@@ -34,9 +34,12 @@ tasks.named('test', Test) {
     maxHeapSize = '1G'
 
     testLogging {
-        events "passed"
+        events "passed", "failed", "skipped"
+        outputs.upToDateWhen {false}
+        showStandardStreams = true  // <-- This ensures System.out output is shown
     }
 }
+
 
 tasks.jar {
     dependsOn('fatJar')

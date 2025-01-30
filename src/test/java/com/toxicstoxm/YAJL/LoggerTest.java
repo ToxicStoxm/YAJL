@@ -32,6 +32,8 @@ public class LoggerTest {
         LOGGER.fatal("oh oh {}", 5.456);
         LOGGER.fatal("Hello ", new IndexOutOfBoundsException("Off by 1 error, you stopid!"));
         LOGGER.fatal("I wanted to tell you that.{}..", new IllegalThreadStateException("This is not allowed state!"), 7.8);
+
+        LOGGER.debug((LogMessagePlaceholder) () -> "Hello World");
     }
 
 }

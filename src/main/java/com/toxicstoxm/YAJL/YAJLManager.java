@@ -4,6 +4,10 @@ import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayDeque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 public class YAJLManager implements YAJLManagerSettings {
 
     protected YAJLManagerConfig config = YAJLManagerConfig.builder().build();
@@ -21,23 +25,20 @@ public class YAJLManager implements YAJLManagerSettings {
     }
     
     private void init() {
-        if (config.isBridgeYAJSI()) {
-            SettingsManager.getInstance().configure(
-                    SettingsManager.SettingsManagerConfig.builder()
-                            .logger(Logger.builder().logPrefix("YAJSI").build())
-                            .build()
-            );
-        }
-
         if (config.isEnableYAMLConfig()) {
             SettingsManager.getInstance().registerYAMLConfiguration(config);
             Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                if (!config.isMuteLogger()) {
+                    System.out.println("[YAJL] Processing shutdown handles");
+                }
                 SettingsManager.getInstance().save();
                 if (!config.isMuteLogger()) {
-                    System.out.println("[YAJL] Shutting down!");
+                    System.out.println("[YAJL] Shutting down, Goodbye!");
                 }
             }));
         }
+
+        setBridgeYAJSI(config.isBridgeYAJSI());
     }
 
     @Contract(value = " -> new", pure = true)
@@ -63,5 +64,12 @@ public class YAJLManager implements YAJLManagerSettings {
 
     public void setBridgeYAJSI(boolean bridgeYAJSI) {
         config.setBridgeYAJSI(bridgeYAJSI);
+        if (bridgeYAJSI) {
+            SettingsManager.getInstance().configure(
+                    SettingsManager.SettingsManagerConfig.builder()
+                            .logger(Logger.builder().logPrefix("YAJSI").build())
+                            .build()
+            );
+        }
     }
 }
