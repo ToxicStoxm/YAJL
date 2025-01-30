@@ -18,21 +18,27 @@ public class YAJLManagerConfig {
     @Builder.Default
     @YAMLSetting.Ignore
     private LogLevel defaultLogLevel = LogLevels.INFO;
+
     @Builder.Default
     @YAMLSetting(name = "Enable-Color-Coding", comments = "Should the log be color coded?")
     private boolean enableColorCoding = true;
+
     @Builder.Default
     @YAMLSetting(name = "Mute-Logger", comments = "This mutes the logger entirely and prohibits all output")
     private boolean muteLogger = false;
+
     @Builder.Default
     @YAMLSetting(name = "Enable-YAML-Config", comments = "If false, this config file will be ignored!")
     private boolean enableYAMLConfig = true;
+
     @Builder.Default
     @YAMLSetting(name = "Bridge-YAJSI", comments = "If true, YAJL will automatically provide YAJSI with a logger instance.")
     private boolean bridgeYAJSI = true;
+
     @Builder.Default
     @YAMLSetting(name = "Stacktrace-Length-Limit", comments = "Set a limit to how many lines of a stacktrace are printed.")
     private int stackTraceLengthLimit = 20;
+
     @Builder.Default
     @YAMLSetting(name = "Log-Message-Layout", comments = {"This message layout will be used for constructing log messages.",
             "Supported placeholders are:",
@@ -48,6 +54,7 @@ public class YAJLManagerConfig {
             "   this will result in a trace like this: lineNumber-className-methodName"
     })
     private String logMessageLayout = "{color:hex=#545454}[{time:format=HH:mm:ss}] [{prefix}]{levelColor} [{level}]: {message}";
+
     @Builder.Default
     @YAMLSetting(name = "Log-Area-Filter-Patterns", comments = {"Per default every logger instance is enabled. You can filter log instances by specifying which ones should be activated.",
             "Using absolute identifier (default: classpath, for example com.example.Main): this means providing the exact identifier of the logger you want to enable.",
