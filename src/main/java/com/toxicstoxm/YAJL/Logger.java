@@ -2,13 +2,9 @@ package com.toxicstoxm.YAJL;
 
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,6 +13,9 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
 
     @Builder.Default
     private String logPrefix = "";
+
+    @Builder.Default
+    private String logArea = "";
 
     private static Map<String, PlaceholderHandler> placeholderHandlers = new HashMap<>();
 
@@ -45,13 +44,29 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         });
         placeholderHandlers.put("trace", args -> {
             StringBuilder finalTrace = new StringBuilder();
-            if (args.containsKey("class")) {
+            String separator = args.getOrDefault("separator", () -> ":").getData();
+
+            if (args.containsKey("class") || args.containsKey("method") || args.containsKey("line")) {
+                for (String key : args.keySet()) {
+                    // Check for matching argument names and append in order
+                    switch (key) {
+                        case "class" -> {
+                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
+                            finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData());
+                        }
+                        case "method" -> {
+                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
+                            finalTrace.append(args.getOrDefault("traceMethod", () -> "Unknown").getData());
+                        }
+                        case "line" -> {
+                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
+                            finalTrace.append(args.getOrDefault("traceLineNumber", () -> "0").getData());
+                        }
+                    }
+                }
+            } else {
                 finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData());
-            }
-            if (args.containsKey("method") || args.containsKey("function")) {
                 finalTrace.append(":").append(args.getOrDefault("traceMethod", () -> "Unknown").getData());
-            }
-            if (args.containsKey("lineNumber") || args.containsKey("line")) {
                 finalTrace.append(":").append(args.getOrDefault("traceLineNumber", () -> "0").getData());
             }
 
@@ -63,18 +78,20 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
      * Automatically sets the log prefix to the classes name this function is called from.
      * @return a new, configured logger instance, ready for use
      */
-    public static Logger autoConfigureLogger() {
+    public static @NotNull Logger autoConfigureLogger() {
         StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        String callerClassName = stackTraceElements[2].getClassName();
 
-        String prefix = Arrays.stream(stackTraceElements[2].getClassName().split("\\.")).toList().getLast();
+        String prefix = Arrays.stream(callerClassName.split("\\.")).toList().getLast();
 
-        return Logger.builder()
+        Logger newLogger = Logger.builder()
                 .logPrefix(prefix == null || prefix.isBlank() ? "" : prefix)
+                .logArea(callerClassName)
                 .build();
-    }
 
-    private Logger(@Nullable String prefix) {
-        if (prefix != null) this.logPrefix = prefix;
+        newLogger.debug("Initialized new logger: {} --> using autoconfigure", newLogger);
+
+        return newLogger;
     }
 
     public void stacktrace(String message) {
@@ -187,7 +204,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
 
 
     public void log(@NotNull LogLevel logLevel, String message) {
-        if (YAJLManager.getInstance().config.isMuteLogger()) return;
+        if (YAJLManager.getInstance().config.isMuteLogger() || !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) return;
 
         String messageLayout = YAJLManager.getInstance().config.getLogMessageLayout();
 
@@ -198,8 +215,8 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         args.put("message", () -> message);
         args.put("prefix", () -> logPrefix);
         args.put("trace", () -> TraceTools.getCallerTraceFormatted(true, true, true));
-        args.put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
         args.put("traceClass", () -> TraceTools.getCallerTraceFormatted(true, false, false));
+        args.put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
         args.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
 
         System.out.println(processLogMessage(messageLayout, args) + ColorTools.resetAnsi());
@@ -215,7 +232,8 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
             String key = matcher.group(1);
             String rawArgs = matcher.group(2);
 
-            Map<String, StringPlaceholder> argMap = new HashMap<>(args);
+            // use linked hashmap to ensure elements stay in the order they were added
+            Map<String, StringPlaceholder> argMap = new LinkedHashMap<>(args);
             if (rawArgs != null) {
                 for (String arg : rawArgs.split(",")) {
                     String[] kv = arg.split("=");
@@ -234,7 +252,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
 
 
     public void log(@NotNull LogLevel logLevel, String message, Object... objects) {
-        if (YAJLManager.getInstance().config.isMuteLogger()) return;
+        if (YAJLManager.getInstance().config.isMuteLogger() || !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) return;
         log(logLevel, format(message, objects));
     }
 
@@ -275,5 +293,10 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
     @Override
     public void log(String s) {
         log(YAJLManager.getInstance().config.getDefaultLogLevel(), s);
+    }
+
+    @Override
+    public String toString() {
+        return "[Name='" + logPrefix + "', ID='" + logArea + "']";
     }
 }

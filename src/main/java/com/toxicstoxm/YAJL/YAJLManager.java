@@ -4,9 +4,8 @@ import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayDeque;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Arrays;
+import java.util.List;
 
 public class YAJLManager implements YAJLManagerSettings {
 
@@ -38,6 +37,7 @@ public class YAJLManager implements YAJLManagerSettings {
             }));
         }
 
+        setLogAreaFilterPatterns(config.getLogAreaFilterPatterns());
         setBridgeYAJSI(config.isBridgeYAJSI());
     }
 
@@ -67,9 +67,26 @@ public class YAJLManager implements YAJLManagerSettings {
         if (bridgeYAJSI) {
             SettingsManager.getInstance().configure(
                     SettingsManager.SettingsManagerConfig.builder()
-                            .logger(Logger.builder().logPrefix("YAJSI").build())
+                            .logger(Logger.builder().logPrefix("YAJSI").logArea("YAJSI").build())
                             .build()
             );
         }
+    }
+
+    @Override
+    public void setLogAreaFilterPatterns(List<String> logAreaFilterPatterns) {
+        config.setLogAreaFilterPatterns(logAreaFilterPatterns);
+        config.setLogFilter(new LogFilter(logAreaFilterPatterns));
+    }
+
+    @Override
+    public void addLogAreaFilterPattern(String logAreaFilterPattern) {
+        config.getLogAreaFilterPatterns().add(logAreaFilterPattern);
+        config.getLogFilter().addFilterPattern(logAreaFilterPattern);
+    }
+
+    @Override
+    public void addLogAreaFilterPatterns(String... logAreaFilterPatterns) {
+        Arrays.stream(logAreaFilterPatterns).forEach(this::addLogAreaFilterPattern);
     }
 }
