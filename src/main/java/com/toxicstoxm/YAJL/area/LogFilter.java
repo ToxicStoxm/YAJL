@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.area;
 
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
