@@ -82,6 +82,27 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
 
             return finalTrace.toString();
         });
+
+        placeholderHandlers.put("prefixColor", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return ColorTools.toAnsi(ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()));
+            } else {
+                return "";
+            }
+        });
+
+        placeholderHandlers.put("mixLevelAndAreaColor", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return ColorTools.toAnsi(
+                        ColorTools.mixColors(
+                                ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()),
+                                ColorTools.fromAnsi(args.getOrDefault("levelColor", () -> ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())).getData())
+                        )
+                );
+            } else {
+                return "";
+            }
+        });
     }
 
     /**
