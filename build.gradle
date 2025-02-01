@@ -22,7 +22,7 @@ dependencies {
 
     implementation 'org.yaml:snakeyaml:2.3'
 
-    implementation 'com.toxicstoxm.YAJSI:YAJSI:2.1.1'
+    implementation 'com.toxicstoxm.YAJSI:YAJSI:2.1.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -81,6 +81,10 @@ mavenPublishing {
             developerConnection = "scm:git:ssh://git@github.com/ToxicStoxm/YAJL.git"
         }
     }
+}
+
+javadoc {
+    failOnError = false
 }
 
 tasks.register('fatJar', Jar) {
