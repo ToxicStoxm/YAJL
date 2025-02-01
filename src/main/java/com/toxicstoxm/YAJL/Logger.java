@@ -1,5 +1,12 @@
 package com.toxicstoxm.YAJL;
 
+import com.toxicstoxm.YAJL.level.LogLevel;
+import com.toxicstoxm.YAJL.level.LogLevels;
+import com.toxicstoxm.YAJL.placeholders.LogMessagePlaceholder;
+import com.toxicstoxm.YAJL.placeholders.PlaceholderHandler;
+import com.toxicstoxm.YAJL.placeholders.StringPlaceholder;
+import com.toxicstoxm.YAJL.tools.ColorTools;
+import com.toxicstoxm.YAJL.tools.TraceTools;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +31,9 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
             String format = args.getOrDefault("format", () -> "HH:mm:ss").getData();
             return java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern(format));
         });
+
         placeholderHandlers.put("level", args -> args.getOrDefault("level", () -> YAJLManager.getInstance().config.getDefaultLogLevel().getName()).getData());
+
         placeholderHandlers.put("levelColor", args -> {
             if (YAJLManager.getInstance().config.isEnableColorCoding()) {
                 return args.getOrDefault("levelColor", () -> ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())).getData();
@@ -206,6 +215,8 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
     public void log(@NotNull LogLevel logLevel, String message) {
         if (YAJLManager.getInstance().config.isMuteLogger() || !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) return;
 
+        if (logLevel.getLevel() < YAJLManager.getInstance().config.getMinimumLogLevel()) return;
+
         String messageLayout = YAJLManager.getInstance().config.getLogMessageLayout();
 
         Map<String, StringPlaceholder> args = new HashMap<>();
@@ -219,7 +230,9 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         args.put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
         args.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
 
-        System.out.println(processLogMessage(messageLayout, args) + ColorTools.resetAnsi());
+        String finalLogMessage = processLogMessage(messageLayout, args) + ColorTools.resetAnsi();
+        System.out.println(finalLogMessage);
+        YAJLManager.getInstance().logFileHandler.writeLogMessage(finalLogMessage);
     }
 
     public String processLogMessage(String layout, Map<String, StringPlaceholder> args) {
