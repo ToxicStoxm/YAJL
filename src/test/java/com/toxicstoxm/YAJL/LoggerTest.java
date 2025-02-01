@@ -1,6 +1,8 @@
 package com.toxicstoxm.YAJL;
 
 import com.sun.jdi.NativeMethodException;
+import com.toxicstoxm.YAJL.level.LogLevels;
+import com.toxicstoxm.YAJL.placeholders.LogMessagePlaceholder;
 import org.junit.jupiter.api.Test;
 
 public class LoggerTest {
@@ -35,5 +37,4 @@ public class LoggerTest {
 
         LOGGER.debug((LogMessagePlaceholder) () -> "Hello World");
     }
-
 }
