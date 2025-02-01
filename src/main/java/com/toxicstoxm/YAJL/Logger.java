@@ -6,6 +6,7 @@ import com.toxicstoxm.YAJL.placeholders.LogMessagePlaceholder;
 import com.toxicstoxm.YAJL.placeholders.PlaceholderHandler;
 import com.toxicstoxm.YAJL.placeholders.StringPlaceholder;
 import com.toxicstoxm.YAJL.tools.ColorTools;
+import com.toxicstoxm.YAJL.tools.StringTools;
 import com.toxicstoxm.YAJL.tools.TraceTools;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +108,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         log(LogLevels.STACKTRACE, message);
     }
 
-    public void stacktrace(Exception exception) {
+    public void stacktrace(Throwable exception) {
         if (exception == null) {
             stacktrace("Error, failed to print stacktrace: Exception is null!");
             return;
@@ -166,7 +167,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         log(LogLevels.ERROR, message);
     }
 
-    public void error(String message, Exception exception) {
+    public void error(String message, Throwable exception) {
         log(LogLevels.ERROR, message);
         logException(LogLevels.ERROR, exception);
     }
@@ -179,19 +180,45 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         log(LogLevels.ERROR, message, objects);
     }
 
-    public void error(String message, Exception exception, Object... objects) {
+    public void error(String message, Throwable exception, Object... objects) {
         log(LogLevels.ERROR, message, objects);
         logException(LogLevels.ERROR, exception);
     }
 
-    public void logException(LogLevel logLevel, Exception exception) {
+    public void logException(LogLevel logLevel, Throwable exception) {
         if (exception == null) {
-            log(logLevel, "Error message: null");
+            log(logLevel, "Error: Exception is null.");
             return;
         }
-        log(logLevel, "Error message: {}", exception.getMessage());
+
+        // Include debugging metadata
+        log(LogLevels.DEBUG, "Thread: {}, Timestamp: {}", Thread.currentThread().getName(), System.currentTimeMillis());
+
+        // Log the exception class name and message
+        log(logLevel, "Exception [{}]: {}", exception.getClass().getName(), exception.getMessage());
+
+        // Log full stacktrace
         stacktrace(exception);
+
+        // Handle nested (caused by) exceptions
+        Throwable cause = exception.getCause();
+        while (cause != null) {
+            log(logLevel, "Caused by [{}]: {}", cause.getClass().getName(), cause.getMessage());
+            stacktrace(cause);
+            cause = cause.getCause();
+        }
+
+        // Handle suppressed exceptions
+        Throwable[] suppressed = exception.getSuppressed();
+        if (suppressed.length > 0) {
+            log(logLevel, "Suppressed exceptions:");
+            for (Throwable sup : suppressed) {
+                log(logLevel, " - [{}]: {}", sup.getClass().getName(), sup.getMessage());
+                stacktrace(sup);
+            }
+        }
     }
+
 
     public void fatal(String message, Exception exception) {
         log(LogLevels.FATAL, message);
@@ -216,6 +243,13 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         if (YAJLManager.getInstance().config.isMuteLogger() || !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) return;
 
         if (logLevel.getLevel() < YAJLManager.getInstance().config.getMinimumLogLevel()) return;
+
+        if (message.contains("\n")) {
+            for (String subMessage : message.split("\n")) {
+                log(logLevel, subMessage);
+            }
+            return;
+        }
 
         String messageLayout = YAJLManager.getInstance().config.getLogMessageLayout();
 
@@ -273,7 +307,8 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         if (objects != null) {
             for (Object object : objects) {
                 if (!message.contains(getPlaceholderLiteral())) {
-                    throw new IllegalArgumentException("Message does not contain enough placeholders!");
+                    break;
+                    //throw new IllegalArgumentException("Message does not contain enough placeholders!");
                 }
 
                 if (object instanceof LogMessagePlaceholder placeholder) {
@@ -281,11 +316,11 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
                     Object o = placeholder.getObject();
 
                     // Escape the replacement value to avoid Illegal group reference
-                    message = message.replaceFirst(getPlaceholderRegex(), o == null ? "null" : Matcher.quoteReplacement(o.toString()));
+                    message = message.replaceFirst(getPlaceholderRegex(), o == null ? "null" : Matcher.quoteReplacement(StringTools.computeToString(o)));
 
                 } else {
                     // Escape the replacement value to avoid Illegal group reference
-                    message = message.replaceFirst(getPlaceholderRegex(), Matcher.quoteReplacement(object.toString()));
+                    message = message.replaceFirst(getPlaceholderRegex(), Matcher.quoteReplacement(StringTools.computeToString(object)));
                 }
 
             }
