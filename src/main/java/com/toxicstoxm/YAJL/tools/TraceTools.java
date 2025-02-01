@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.tools;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
