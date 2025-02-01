@@ -22,7 +22,7 @@ dependencies {
 
     implementation 'org.yaml:snakeyaml:2.3'
 
-    implementation 'com.toxicstoxm.YAJSI:YAJSI:2.0.0'
+    implementation 'com.toxicstoxm.YAJSI:YAJSI:2.1.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
