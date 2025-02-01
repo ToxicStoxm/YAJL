@@ -14,19 +14,25 @@ import java.util.List;
 
 public class YAJLManager implements YAJLManagerSettings {
 
-    protected YAJLManagerConfig config = YAJLManagerConfig.builder().build();
+    protected YAJLManagerConfig config;
     protected LogFileHandler logFileHandler;
 
-    private YAJLManager() {}
+    private YAJLManager(YAJLManagerConfig defaultConfig) {
+        this.config = defaultConfig;
+    }
 
     private static YAJLManager instance = null;
 
-    public static YAJLManager getInstance() {
+    public static YAJLManager getInstance(YAJLManagerConfig defaultSettings) {
         if (instance == null) {
-            instance = new YAJLManager();
+            instance = new YAJLManager(defaultSettings == null ? YAJLManagerConfig.builder().build() : defaultSettings);
             instance.init();
         }
         return instance;
+    }
+
+    public static YAJLManager getInstance() {
+        return getInstance(null);
     }
 
     private void init() {
@@ -42,7 +48,7 @@ public class YAJLManager implements YAJLManagerSettings {
                 if (!config.isMuteLogger()) {
                     System.out.println("[YAJL] Saving YAML configuration.");
                 }
-                SettingsManager.getInstance().save();
+                SettingsManager.getInstance().save(config);
             }
             if (!config.isMuteLogger()) {
                 System.out.println("[YAJL] Shutting down log file handler");
@@ -57,12 +63,15 @@ public class YAJLManager implements YAJLManagerSettings {
         setLogAreaFilterPatterns(config.getLogAreaFilterPatterns());
         logFileHandler = new LogFileHandler();
         setBridgeYAJSI(config.isBridgeYAJSI());
-
     }
 
     @Contract(value = " -> new", pure = true)
     public static @NotNull YAJLManagerSettings configure() {
         return getInstance();
+    }
+
+    public static @NotNull YAJLManagerSettings configure(YAJLManagerConfig defaultSettings) {
+        return getInstance(defaultSettings);
     }
 
     public YAJLManagerSettings setDefaultLogLevel(LogLevel defaultLogLevel) {
@@ -71,17 +80,12 @@ public class YAJLManager implements YAJLManagerSettings {
     }
 
     public YAJLManagerSettings setEnableColorCoding(boolean enableColorCoding) {
-        config.setEnableYAMLConfig(enableColorCoding);
+        config.setEnableColorCoding(enableColorCoding);
         return this;
     }
 
     public YAJLManagerSettings setMuteLogger(boolean muteLogger) {
         config.setMuteLogger(muteLogger);
-        return this;
-    }
-
-    public YAJLManagerSettings setEnableYAMLConfig(boolean enableYAMLConfig) {
-        config.setEnableYAMLConfig(enableYAMLConfig);
         return this;
     }
 
@@ -128,6 +132,7 @@ public class YAJLManager implements YAJLManagerSettings {
     @Override
     public YAJLManagerSettings setLogFileEnabled(boolean enabled) {
         config.getLogFileConfig().setEnable(enabled);
+        logFileHandler.setEnabled(enabled);
         return this;
     }
 
@@ -170,6 +175,12 @@ public class YAJLManager implements YAJLManagerSettings {
     @Override
     public YAJLManagerSettings setLogMessageLayout(String logMessageLayout) {
         config.setLogMessageLayout(logMessageLayout);
+        return this;
+    }
+
+    @Override
+    public YAJLManagerSettings setMinimumLogLevel(int minimumLogLevel) {
+        config.setMinimumLogLevel(minimumLogLevel);
         return this;
     }
 }
