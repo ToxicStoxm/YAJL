@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.placeholders;
 
 import java.util.Map;
 
