@@ -53,9 +53,7 @@ public class YAJLManagerConfig {
     private boolean muteLogger = false;
 
     @Builder.Default
-    @YAMLSetting(name = "Enable-YAML-Config", comments = {
-            "If false, this YAML configuration file will be ignored, and default settings will be used."
-    })
+    @YAMLSetting.Ignore
     private boolean enableYAMLConfig = true;
 
     @Builder.Default

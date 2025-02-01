@@ -15,9 +15,6 @@ public interface YAJLManagerSettings {
     // Logger Mute Settings
     YAJLManagerSettings setMuteLogger(boolean muteLogger);
 
-    // YAML Config Settings
-    YAJLManagerSettings setEnableYAMLConfig(boolean enableYAMLConfig);
-
     // YAJSI Bridge Settings
     YAJLManagerSettings setBridgeYAJSI(boolean bridgeYAJSI);
 
@@ -49,4 +46,6 @@ public interface YAJLManagerSettings {
 
     // Log Message Layout Settings
     YAJLManagerSettings setLogMessageLayout(String logMessageLayout);
+
+    YAJLManagerSettings setMinimumLogLevel(int minimumLogLevel);
 }
