@@ -1,10 +1,10 @@
 package com.toxicstoxm.YAJL;
 
 import com.toxicstoxm.YAJL.area.LogFilter;
+import com.toxicstoxm.YAJL.config.LogFileConfig;
 import com.toxicstoxm.YAJL.config.YAJLManagerConfig;
 import com.toxicstoxm.YAJL.config.YAJLManagerSettings;
 import com.toxicstoxm.YAJL.level.LogLevel;
-import com.toxicstoxm.YAJL.config.LogFileConfig;
 import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
