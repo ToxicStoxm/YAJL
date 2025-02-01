@@ -19,13 +19,30 @@ import java.util.zip.GZIPOutputStream;
 public class LogFileHandler {
     private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
     private final ExecutorService logWriter = Executors.newSingleThreadExecutor();
+    private boolean init = false;
 
     private File currentLogFile;
 
     public LogFileHandler() {
-        ensureLogDirectory();
-        startNewSessionLogFile();
-        startAsyncWriter();
+        if (YAJLManager.getInstance().config.getLogFileConfig().isEnable()) setEnabled(true);
+    }
+
+    /**
+     * Initializes / de-initializes the log manager.
+     * @param enable
+     */
+    public void setEnabled(boolean enable) {
+        if (enable) {
+            if (init) return;
+            ensureLogDirectory();
+            startNewSessionLogFile();
+            startAsyncWriter();
+            init = true;
+        } else {
+            if (!init) return;
+            shutdown();
+            init = false;
+        }
     }
 
     /**
@@ -33,11 +50,12 @@ public class LogFileHandler {
      * @param message The log message to write.
      */
     public void writeLogMessage(String message) {
-        logQueue.offer(message);
+        if (YAJLManager.getInstance().config.getLogFileConfig().isEnable()) logQueue.offer(message);
     }
 
     private @NotNull String getLogDirectory() {
-        return SettingsManager.getInstance().getConfigLocation(YAJLManager.getInstance().config).getParent() + "/"
+        String configDir = SettingsManager.getInstance().getConfigDirectory();
+        return configDir + "/"
                 + YAJLManager.getInstance().config.getLogFileConfig().getLogDirectory();
     }
 
