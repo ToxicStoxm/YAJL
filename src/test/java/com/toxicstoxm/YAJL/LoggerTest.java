@@ -1,40 +1,167 @@
 package com.toxicstoxm.YAJL;
 
 import com.sun.jdi.NativeMethodException;
+import com.toxicstoxm.YAJL.config.LogFileConfig;
+import com.toxicstoxm.YAJL.config.YAJLManagerConfig;
 import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJL.placeholders.LogMessagePlaceholder;
+import com.toxicstoxm.YAJL.placeholders.StringPlaceholder;
+import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class LoggerTest {
+import java.util.*;
 
-    private static final Logger LOGGER = Logger.autoConfigureLogger();
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+class LoggerTest {
+
+    private Logger logger;
+
+    @BeforeEach
+    void setUp() {
+        YAJLManager.configure(
+                YAJLManagerConfig.builder()
+                        .enableYAMLConfig(false)
+                        .build()
+        ).setMinimumLogLevel(-20)
+                .setStackTraceLengthLimit(20);
+        logger = Logger.builder()
+                .logPrefix("TestPrefix")
+                .logArea("TestArea")
+                .build();
+    }
+
+    @Test
+    void testAutoConfigureLogger() {
+        Logger autoConfiguredLogger = Logger.autoConfigureLogger();
+        assertNotNull(autoConfiguredLogger);
+        assertNotNull(autoConfiguredLogger.toString());
+    }
+
+    @Test
+    void testDebugLogging() {
+        logger.debug("Debug message");
+        // No assertion here, just ensuring no exception is thrown
+    }
+
+    @Test
+    void testInfoLogging() {
+        logger.info("Info message");
+    }
+
+    @Test
+    void testWarnLogging() {
+        logger.warn("Warning message");
+    }
+
+    @Test
+    void testErrorLogging() {
+        logger.error("Error message");
+    }
+
+    @Test
+    void testFatalLogging() {
+        logger.fatal("Fatal error message");
+    }
+
+    @Test
+    void testLogMessageFormatting() {
+        String message = "This is a log message with a placeholder: {}";
+        String formattedMessage = logger.format(message, "TestObject");
+
+        assertEquals("This is a log message with a placeholder: TestObject", formattedMessage);
+    }
+
+    @Test
+    void testLogException() {
+        Exception testException = new Exception("Test exception");
+        logger.error("Error occurred", testException);
+    }
+
+    @Test
+    void testProcessLogMessage() {
+        Map<String, StringPlaceholder> args = Map.of(
+                "level", LogLevels.DEBUG::getName,
+                "message", () -> "Test message"
+        );
+        String processedMessage = logger.processLogMessage("{level}: {message}", args);
+        assertEquals("DEBUG: Test message", processedMessage);
+    }
 
     @Test
     public void APITest() {
-        LOGGER.log(LogLevels.ERROR, "Hello this is an error! Message: {}", 45);
+        // Complex Placeholder Tests
+        logger.log(LogLevels.DEBUG, "Int: {}, Double: {}, Char: {}, Boolean: {}, Null: {}",
+                42, 3.14159, 'X', true, null);
 
-        LOGGER.stacktrace("Hello");
-        LOGGER.stacktrace(new IndexOutOfBoundsException("Shit"));
-        LOGGER.stacktrace("Hello {}", 47);
-        LOGGER.verbose("Hey");
-        LOGGER.verbose("Hey {}", 'O');
-        LOGGER.debug("KP");
-        LOGGER.debug(new char[]{'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'});
-        LOGGER.debug("Hey {}", 56.456345643);
-        LOGGER.info("hello");
-        LOGGER.info("KVM qemu {}", "2€€€€€");
-        LOGGER.warn("Maybe");
-        LOGGER.warn("shittify {}", "hannes");
-        LOGGER.error("Something went wrong!");
-        LOGGER.error(new IllegalAccessException("You can't do that!"));
-        LOGGER.error("Lul u stopid! {} {}", "+", 25);
-        LOGGER.error("NOOOOO", new NullPointerException("You are nullllll!"));
-        LOGGER.error("You went wrong! {} {} {}", new NativeMethodException("Oh oh SIGSEGV!"), "dsfasf", 5.3, 'A');
-        LOGGER.fatal(new RuntimeException("OHH no a fatal exception", new IndexOutOfBoundsException("Sheet metal")));
-        LOGGER.fatal("oh oh {}", 5.456);
-        LOGGER.fatal("Hello ", new IndexOutOfBoundsException("Off by 1 error, you stopid!"));
-        LOGGER.fatal("I wanted to tell you that.{}..", new IllegalThreadStateException("This is not allowed state!"), 7.8);
+        logger.info("Nested Array Test: {}", (LogMessagePlaceholder) () -> (Object) new int[][][]{{{1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}}, {{1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}}});
 
-        LOGGER.debug((LogMessagePlaceholder) () -> "Hello World");
+        logger.info("Highly Nested Object Test: {}", (LogMessagePlaceholder) () -> (Object) createDeepNestedStructure());
+
+        logger.log(LogLevels.INFO, "Array Test: {}", new int[]{1, 2, 3, 4, 5});
+        logger.log(LogLevels.WARN, "Object Test: {}", new Object() {
+            @Override
+            public String toString() {
+                return "I'm an anonymous object!";
+            }
+        });
+
+        logger.error("Shit\n");
+        logger.debug("Hello \nWorld!");
+
+        // Exception Formatting Tests
+        Exception complexException = new Exception("Top-Level Exception",
+                new RuntimeException("Nested Exception", new NullPointerException("Deep Nested Exception")));
+        logger.error("Exception Stacktrace Test: {}", complexException);
+
+        // Nested Logging Calls
+        logger.debug("This will log another log call: {}", logger.toString());
+
+        // Edge Cases
+        logger.log(LogLevels.FATAL, "Empty Placeholder Test: {} {}", "", "");
+        logger.log(LogLevels.ERROR, "Same Placeholder Multiple Times: {} {} {}", "Repeat", "Repeat", "Repeat");
+        logger.log(LogLevels.WARN, "Escaped Braces {{}} should not break formatting");
+
+        // Placeholder Overflow Test (More placeholders than arguments)
+        logger.log(LogLevels.INFO, "Extra placeholders: {} {} {}", "OnlyOneArg");
+
+        // Placeholder Underflow Test (More arguments than placeholders)
+        logger.log(LogLevels.DEBUG, "Not enough placeholders: {}", "Arg1", "Arg2", "Arg3");
+
+        // Very Large Number of Arguments
+        logger.log(LogLevels.VERBOSE, "Massive argument test: {} {} {} {} {} {} {} {} {} {}",
+                1, "Two", 3.0, true, 'C', 6.78f, null, new int[]{9, 10, 11}, new Object() {
+                    @Override
+                    public String toString() {
+                        return "AnonymousClass";
+                    }
+                }, "End");
+
+        // Test Log Prefix and Area
+        assertEquals("[Name='TestPrefix', ID='TestArea']", logger.toString());
+    }
+
+    private @NotNull Object createDeepNestedStructure() {
+        Map<String, Object> level1 = new HashMap<>();
+        List<Object> level2 = new ArrayList<>();
+        Set<Object> level3 = new HashSet<>();
+        int[][][] level4 = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}};  // Multi-dimensional array
+
+        // Go deeper by nesting maps, lists, and sets recursively
+        for (int i = 5; i <= 500; i++) {
+            Map<String, Object> newMap = new HashMap<>();
+            newMap.put("Layer-" + i, level1.isEmpty() ? level4 : level1);
+            level1 = newMap;
+        }
+
+        level3.add(level1);
+        level2.add(level3);
+
+        Map<String, Object> root = new HashMap<>();
+        root.put("Root", level2);
+
+        return root;
     }
 }
