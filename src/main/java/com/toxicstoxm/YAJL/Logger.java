@@ -1,70 +1,371 @@
 package com.toxicstoxm.YAJL;
 
-import com.toxicstoxm.YAJL.areas.LogArea;
-import com.toxicstoxm.YAJL.levels.LogLevel;
+import com.toxicstoxm.YAJL.level.LogLevel;
+import com.toxicstoxm.YAJL.level.LogLevels;
+import com.toxicstoxm.YAJL.placeholders.LogMessagePlaceholder;
+import com.toxicstoxm.YAJL.placeholders.PlaceholderHandler;
+import com.toxicstoxm.YAJL.placeholders.StringPlaceholder;
+import com.toxicstoxm.YAJL.tools.ColorTools;
+import com.toxicstoxm.YAJL.tools.StringTools;
+import com.toxicstoxm.YAJL.tools.TraceTools;
+import lombok.Builder;
+import org.jetbrains.annotations.NotNull;
 
-public interface Logger {
+import java.awt.*;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-    default void setDefaultLogArea(LogArea logArea) {
-        unsupportedLogArea();   }
+@Builder
+public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
 
-    default LogArea getDefaultLogArea() {
-        unsupportedLogArea();
-        return null;
+    @Builder.Default
+    private String logPrefix = "";
+
+    @Builder.Default
+    private String logArea = "";
+
+    private static Map<String, PlaceholderHandler> placeholderHandlers = new HashMap<>();
+
+    static {
+        placeholderHandlers.put("time", args -> {
+            String format = args.getOrDefault("format", () -> "HH:mm:ss").getData();
+            return java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern(format));
+        });
+
+        placeholderHandlers.put("level", args -> args.getOrDefault("level", () -> YAJLManager.getInstance().config.getDefaultLogLevel().getName()).getData());
+
+        placeholderHandlers.put("levelColor", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return args.getOrDefault("levelColor", () -> ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())).getData();
+
+            } else {
+                return "";
+            }
+        });
+        placeholderHandlers.put("message", args -> args.getOrDefault("message", () -> "").getData());
+        placeholderHandlers.put("prefix", args -> args.getOrDefault("prefix", () -> "YAJL").getData());
+        placeholderHandlers.put("color", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return ColorTools.toAnsi(Color.decode(args.getOrDefault("hex", () -> "#FFFFFF").getData()));
+            } else {
+                return "";
+            }
+        });
+        placeholderHandlers.put("trace", args -> {
+            StringBuilder finalTrace = new StringBuilder();
+            String separator = args.getOrDefault("separator", () -> ":").getData();
+
+            if (args.containsKey("class") || args.containsKey("method") || args.containsKey("line")) {
+                for (String key : args.keySet()) {
+                    // Check for matching argument names and append in order
+                    switch (key) {
+                        case "class" -> {
+                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
+                            finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData());
+                        }
+                        case "method" -> {
+                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
+                            finalTrace.append(args.getOrDefault("traceMethod", () -> "Unknown").getData());
+                        }
+                        case "line" -> {
+                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
+                            finalTrace.append(args.getOrDefault("traceLineNumber", () -> "0").getData());
+                        }
+                    }
+                }
+            } else {
+                finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData());
+                finalTrace.append(":").append(args.getOrDefault("traceMethod", () -> "Unknown").getData());
+                finalTrace.append(":").append(args.getOrDefault("traceLineNumber", () -> "0").getData());
+            }
+
+            return finalTrace.toString();
+        });
+
+        placeholderHandlers.put("prefixColor", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return ColorTools.toAnsi(ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()));
+            } else {
+                return "";
+            }
+        });
+
+        placeholderHandlers.put("mixLevelAndAreaColor", args -> {
+            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+                return ColorTools.toAnsi(
+                        ColorTools.mixColors(
+                                ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()),
+                                ColorTools.fromAnsi(args.getOrDefault("levelColor", () -> ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())).getData())
+                        )
+                );
+            } else {
+                return "";
+            }
+        });
     }
 
-    default void fatal(String message) {
-        log("[FATAL]:      " + message);
-    }
-    default void error(String message) {
-        log("[ERROR]:      " + message);
-    }
-    default void warn(String message) {
-        log("[WARN]:       " + message);
-    }
-    default void info(String message) {
-        log("[INFO]:       " + message);
-    }
-    default void debug(String message) {
-        log("[DEBUG]:      " + message);
-    }
-    default void verbose(String message) {
-        log("[VERBOSE]:    " + message);
-    }
-    default void stacktrace(String message) {
-        log("[STACKTRACE]: " + message);
-    }
-    default void log(String message, LogLevel level, LogArea area) {unsupportedOperation("custom log function");}
+    /**
+     * Automatically sets the log prefix to the classes name this function is called from.
+     * @return a new, configured logger instance, ready for use
+     */
+    public static @NotNull Logger autoConfigureLogger() {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        String callerClassName = stackTraceElements[2].getClassName();
 
-    default void fatal(String message, LogArea area) {
-        unsupportedLogArea();
-    }
-    default void error(String message, LogArea area) {
-        unsupportedLogArea();
-    }
-    default void warn(String message, LogArea area) {
-        unsupportedLogArea();
-    }
-    default void info(String message, LogArea area) {
-        unsupportedLogArea();
-    }
-    default void debug(String message, LogArea area) {
-        unsupportedLogArea();
-    }
-    default void verbose(String message, LogArea area) {
-        unsupportedLogArea();
-    }
-    default void stacktrace(String message, LogArea area) {
-        unsupportedLogArea();
+        String prefix = Arrays.stream(callerClassName.split("\\.")).toList().getLast();
+
+        Logger newLogger = Logger.builder()
+                .logPrefix(prefix == null || prefix.isBlank() ? "" : prefix)
+                .logArea(callerClassName)
+                .build();
+
+        newLogger.debug("Initialized new logger: {} --> using autoconfigure", newLogger);
+
+        return newLogger;
     }
 
-    default void unsupportedLogArea() {
-        unsupportedOperation("log areas");
+    public void stacktrace(String message) {
+        log(LogLevels.STACKTRACE, message);
     }
 
-    default void unsupportedOperation(String message) {
-        throw new UnsupportedOperationException("This logger implementation does not support " + message + "!");
+    public void stacktrace(Throwable exception) {
+        if (exception == null) {
+            stacktrace("Error, failed to print stacktrace: Exception is null!");
+            return;
+        }
+        StackTraceElement[] stackTraceElements = exception.getStackTrace();
+        for (int i = 0; i < Math.min(stackTraceElements.length, YAJLManager.getInstance().config.getStackTraceLengthLimit()); i++) {
+            StackTraceElement traceElement = stackTraceElements[i];
+            if (traceElement != null) stacktrace("{}", traceElement);
+        }
+        if (stackTraceElements.length > YAJLManager.getInstance().config.getStackTraceLengthLimit()) {
+            stacktrace("... <{} lines>", stackTraceElements.length - YAJLManager.getInstance().config.getStackTraceLengthLimit());
+        }
     }
 
-    void log(String message);
+    public void stacktrace(String message, Object... objects) {
+        log(LogLevels.STACKTRACE, message, objects);
+    }
+
+    public void verbose(String message) {
+        log(LogLevels.VERBOSE, message);
+    }
+
+    public void verbose(String message, Object... objects) {
+        log(LogLevels.VERBOSE, message, objects);
+    }
+
+    public void debug(String message) {
+        log(LogLevels.DEBUG, message);
+    }
+
+    public void debug(Object object) {
+        log(LogLevels.DEBUG, object == null ? "null" : "{}", object);
+    }
+
+    public void debug(String message, Object... objects) {
+        log(LogLevels.DEBUG, message, objects);
+    }
+
+    public void info(String message) {
+        log(LogLevels.INFO, message);
+    }
+
+    public void info(String message, Object... objects) {
+        log(LogLevels.INFO, message, objects);
+    }
+
+    public void warn(String message) {
+        log(LogLevels.WARN, message);
+    }
+
+    public void warn(String message, Object... objects) {
+        log(LogLevels.WARN, message, objects);
+    }
+
+    public void error(String message) {
+        log(LogLevels.ERROR, message);
+    }
+
+    public void error(String message, Throwable exception) {
+        log(LogLevels.ERROR, message);
+        logException(LogLevels.ERROR, exception);
+    }
+
+    public void error(Exception exception) {
+       logException(LogLevels.ERROR, exception);
+    }
+
+    public void error(String message, Object... objects) {
+        log(LogLevels.ERROR, message, objects);
+    }
+
+    public void error(String message, Throwable exception, Object... objects) {
+        log(LogLevels.ERROR, message, objects);
+        logException(LogLevels.ERROR, exception);
+    }
+
+    public void logException(LogLevel logLevel, Throwable exception) {
+        if (exception == null) {
+            log(logLevel, "Error: Exception is null.");
+            return;
+        }
+
+        // Include debugging metadata
+        log(LogLevels.DEBUG, "Thread: {}, Timestamp: {}", Thread.currentThread().getName(), System.currentTimeMillis());
+
+        // Log the exception class name and message
+        log(logLevel, "Exception [{}]: {}", exception.getClass().getName(), exception.getMessage());
+
+        // Log full stacktrace
+        stacktrace(exception);
+
+        // Handle nested (caused by) exceptions
+        Throwable cause = exception.getCause();
+        while (cause != null) {
+            log(logLevel, "Caused by [{}]: {}", cause.getClass().getName(), cause.getMessage());
+            stacktrace(cause);
+            cause = cause.getCause();
+        }
+
+        // Handle suppressed exceptions
+        Throwable[] suppressed = exception.getSuppressed();
+        if (suppressed.length > 0) {
+            log(logLevel, "Suppressed exceptions:");
+            for (Throwable sup : suppressed) {
+                log(logLevel, " - [{}]: {}", sup.getClass().getName(), sup.getMessage());
+                stacktrace(sup);
+            }
+        }
+    }
+
+
+    public void fatal(String message, Exception exception) {
+        log(LogLevels.FATAL, message);
+        logException(LogLevels.FATAL, exception);
+    }
+
+    public void fatal(Exception exception) {
+        logException(LogLevels.FATAL, exception);
+    }
+
+    public void fatal(String message, Object... objects) {
+        log(LogLevels.FATAL, message, objects);
+    }
+
+    public void fatal(String message, Exception exception, Object... objects) {
+        log(LogLevels.FATAL, message, objects);
+        logException(LogLevels.FATAL, exception);
+    }
+
+
+    public void log(@NotNull LogLevel logLevel, String message) {
+        if (YAJLManager.getInstance().config.isMuteLogger() || !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) return;
+
+        if (logLevel.getLevel() < YAJLManager.getInstance().config.getMinimumLogLevel()) return;
+
+        if (message.contains("\n")) {
+            for (String subMessage : message.split("\n")) {
+                log(logLevel, subMessage);
+            }
+            return;
+        }
+
+        String messageLayout = YAJLManager.getInstance().config.getLogMessageLayout();
+
+        Map<String, StringPlaceholder> args = new HashMap<>();
+
+        args.put("level", logLevel::getName);
+        args.put("levelColor", () -> ColorTools.toAnsi(logLevel.getColor()));
+        args.put("message", () -> message);
+        args.put("prefix", () -> logPrefix);
+        args.put("trace", () -> TraceTools.getCallerTraceFormatted(true, true, true));
+        args.put("traceClass", () -> TraceTools.getCallerTraceFormatted(true, false, false));
+        args.put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
+        args.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
+
+        String finalLogMessage = processLogMessage(messageLayout, args) + ColorTools.resetAnsi();
+        System.out.println(finalLogMessage);
+        YAJLManager.getInstance().logFileHandler.writeLogMessage(finalLogMessage);
+    }
+
+    public String processLogMessage(String layout, Map<String, StringPlaceholder> args) {
+        Pattern pattern = Pattern.compile("\\{(\\w+)(?::([^}]*))?}"); // Matches {placeholder:arg1,arg2,...}
+        Matcher matcher = pattern.matcher(layout);
+
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String key = matcher.group(1);
+            String rawArgs = matcher.group(2);
+
+            // use linked hashmap to ensure elements stay in the order they were added
+            Map<String, StringPlaceholder> argMap = new LinkedHashMap<>(args);
+            if (rawArgs != null) {
+                for (String arg : rawArgs.split(",")) {
+                    String[] kv = arg.split("=");
+                    argMap.put(kv[0], () -> kv.length > 1 ? kv[1] : "");
+                }
+            }
+
+            PlaceholderHandler handler = placeholderHandlers.get(key);
+            String replacement = handler != null ? handler.process(argMap) : matcher.group(0); // Leave untouched if no handler
+            matcher.appendReplacement(result, Objects.equals(key, "message") ? Matcher.quoteReplacement(replacement) : replacement);
+        }
+        matcher.appendTail(result);
+
+        return result.toString();
+    }
+
+
+    public void log(@NotNull LogLevel logLevel, String message, Object... objects) {
+        if (YAJLManager.getInstance().config.isMuteLogger() || !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) return;
+        log(logLevel, format(message, objects));
+    }
+
+    public String format(String message, Object... objects) {
+        if (objects != null) {
+            for (Object object : objects) {
+                if (!message.contains(getPlaceholderLiteral())) {
+                    break;
+                    //throw new IllegalArgumentException("Message does not contain enough placeholders!");
+                }
+
+                if (object instanceof LogMessagePlaceholder placeholder) {
+
+                    Object o = placeholder.getObject();
+
+                    // Escape the replacement value to avoid Illegal group reference
+                    message = message.replaceFirst(getPlaceholderRegex(), o == null ? "null" : Matcher.quoteReplacement(StringTools.computeToString(o)));
+
+                } else {
+                    // Escape the replacement value to avoid Illegal group reference
+                    message = message.replaceFirst(getPlaceholderRegex(), Matcher.quoteReplacement(StringTools.computeToString(object)));
+                }
+
+            }
+        }
+        return message;
+    }
+
+    private @NotNull String getPlaceholderRegex() {
+        String rawPlaceholder = "{}";
+        return Pattern.quote(rawPlaceholder); // Escape for regex
+    }
+
+    private @NotNull String getPlaceholderLiteral() {
+        return "{}";
+    }
+
+
+    @Override
+    public void log(String s) {
+        log(YAJLManager.getInstance().config.getDefaultLogLevel(), s);
+    }
+
+    @Override
+    public String toString() {
+        return "[Name='" + logPrefix + "', ID='" + logArea + "']";
+    }
 }
