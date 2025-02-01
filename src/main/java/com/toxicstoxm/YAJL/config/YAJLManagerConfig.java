@@ -104,4 +104,20 @@ public class YAJLManagerConfig {
     @Builder.Default
     @YAMLSetting(name = "Log-File")
     private LogFileConfig logFileConfig = LogFileConfig.builder().build();
+
+    @Override
+    public String toString() {
+        return "YAJLManagerConfig{" +
+                "defaultLogLevel=" + defaultLogLevel +
+                ", minimumLogLevel=" + minimumLogLevel +
+                ", enableColorCoding=" + enableColorCoding +
+                ", muteLogger=" + muteLogger +
+                ", enableYAMLConfig=" + enableYAMLConfig +
+                ", bridgeYAJSI=" + bridgeYAJSI +
+                ", stackTraceLengthLimit=" + stackTraceLengthLimit +
+                ", logMessageLayout='" + logMessageLayout + '\'' +
+                ", logAreaFilterPatterns=" + logAreaFilterPatterns +
+                ", logFileConfig=" + logFileConfig +
+                '}';
+    }
 }
