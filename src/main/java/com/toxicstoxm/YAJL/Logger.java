@@ -54,7 +54,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         });
         placeholderHandlers.put("trace", args -> {
             StringBuilder finalTrace = new StringBuilder();
-            String separator = args.getOrDefault("separator", () -> ":").getData();
+            String separator = Matcher.quoteReplacement(args.getOrDefault("separator", () -> ":").getData());
 
             if (args.containsKey("class") || args.containsKey("method") || args.containsKey("line")) {
                 for (String key : args.keySet()) {
@@ -62,22 +62,22 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
                     switch (key) {
                         case "class" -> {
                             if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData());
+                            finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData().replaceAll("\\$", "->"));
                         }
                         case "method" -> {
                             if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(args.getOrDefault("traceMethod", () -> "Unknown").getData());
+                            finalTrace.append(args.getOrDefault("traceMethod", () -> "Unknown").getData().replaceAll("\\$", "->"));
                         }
                         case "line" -> {
                             if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(args.getOrDefault("traceLineNumber", () -> "0").getData());
+                            finalTrace.append(args.getOrDefault("traceLineNumber", () -> "0").getData().replaceAll("\\$", "->"));
                         }
                     }
                 }
             } else {
-                finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData());
-                finalTrace.append(":").append(args.getOrDefault("traceMethod", () -> "Unknown").getData());
-                finalTrace.append(":").append(args.getOrDefault("traceLineNumber", () -> "0").getData());
+                finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData().replaceAll("\\$", "->"));
+                finalTrace.append(separator).append(args.getOrDefault("traceMethod", () -> "Unknown").getData().replaceAll("\\$", "->"));
+                finalTrace.append(separator).append(args.getOrDefault("traceLineNumber", () -> "0").getData().replaceAll("\\$", "->"));
             }
 
             return finalTrace.toString();
@@ -304,15 +304,26 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
             Map<String, StringPlaceholder> argMap = new LinkedHashMap<>(args);
             if (rawArgs != null) {
                 for (String arg : rawArgs.split(",")) {
-                    String[] kv = arg.split("=");
+                    String[] kv = arg.split("=", 2);
                     argMap.put(kv[0], () -> kv.length > 1 ? kv[1] : "");
                 }
             }
 
             PlaceholderHandler handler = placeholderHandlers.get(key);
             String replacement = handler != null ? handler.process(argMap) : matcher.group(0); // Leave untouched if no handler
-            matcher.appendReplacement(result, Objects.equals(key, "message") ? Matcher.quoteReplacement(replacement) : replacement);
+            if (replacement.contains("$") || replacement.contains("\\")) {
+                replacement = replacement.replace("\\", "\\\\").replace("$", "\\$");
+            }
+            if (Objects.equals(key, "message") || handler == null) {
+                replacement = Matcher.quoteReplacement(replacement);
+            }
+            matcher.appendReplacement(result, replacement);
+            try {
+                matcher.appendReplacement(result, replacement);
+            } catch (Exception _) {
+            }
         }
+
         matcher.appendTail(result);
 
         return result.toString();
