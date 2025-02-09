@@ -1,6 +1,6 @@
 # YAJL (Yet another Java logger)
-[![Build](https://github.com/ToxicStoxm/YAJL/actions/workflows/gradle.yml/badge.svg)](https://github.com/ToxicStoxm/YAJL/actions/workflows/gradle.yml)  
-  
+[![Build](https://github.com/ToxicStoxm/YAJL/actions/workflows/gradle.yml/badge.svg?branch=main)](https://github.com/ToxicStoxm/YAJL/actions/workflows/gradle.yml)
+
 #### Available at [Maven Central](https://central.sonatype.com/artifact/com.toxicstoxm.YAJL/YAJL)
 
 ### Maven
