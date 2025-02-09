@@ -1,7 +1,5 @@
 package com.toxicstoxm.YAJL;
 
-import com.sun.jdi.NativeMethodException;
-import com.toxicstoxm.YAJL.config.LogFileConfig;
 import com.toxicstoxm.YAJL.config.YAJLManagerConfig;
 import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJL.placeholders.LogMessagePlaceholder;
@@ -98,7 +96,7 @@ class LoggerTest {
 
         logger.info("Nested Array Test: {}", (LogMessagePlaceholder) () -> (Object) new int[][][]{{{1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}}, {{1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}, {1, 2, 3, 4, 5}}});
 
-        logger.info("Highly Nested Object Test: {}", (LogMessagePlaceholder) () -> (Object) createDeepNestedStructure());
+        logger.info("Highly Nested Object Test: {}", (LogMessagePlaceholder) this::createDeepNestedStructure);
 
         logger.log(LogLevels.INFO, "Array Test: {}", new int[]{1, 2, 3, 4, 5});
         logger.log(LogLevels.WARN, "Object Test: {}", new Object() {
