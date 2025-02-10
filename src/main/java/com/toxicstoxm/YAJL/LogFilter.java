@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.area;
+package com.toxicstoxm.YAJL;
 
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-
+/**
+ * Log filter which can be used to filter the loggers based on their prefix / area.
+ */
 public class LogFilter {
     private final List<Pattern> logAreaPatterns;
 

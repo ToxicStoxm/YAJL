@@ -3,12 +3,22 @@ package com.toxicstoxm.YAJL.tools;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Utility class for retrieving caller information from the stack trace.
+ * <p>
+ * This class helps in identifying the method, class, and line number of the
+ * caller, while filtering out internal logger calls and Java system classes.
+ * </p>
+ */
 public class TraceTools {
 
     private static final String LOGGER_PACKAGE = "com.toxicstoxm.YAJL";  // Adjust based on your package
 
     /**
-     * Retrieves the first non-logger stack trace element.
+     * Retrieves the first non-logger stack trace element, filtering out internal
+     * logger and system calls.
+     *
+     * @return The first valid {@code StackTraceElement} or {@code null} if none is found.
      */
     private static @Nullable StackTraceElement getCallerTrace() {
         StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
@@ -27,6 +37,8 @@ public class TraceTools {
 
     /**
      * Retrieves only the line number of the caller.
+     *
+     * @return The caller's line number, or {@code -1} if unavailable.
      */
     public static int getCallerLineNumber() {
         StackTraceElement element = getCallerTrace();
@@ -35,6 +47,8 @@ public class TraceTools {
 
     /**
      * Retrieves only the method name of the caller.
+     *
+     * @return The caller's method name, or {@code "Unknown"} if unavailable.
      */
     public static @NotNull String getCallerMethodName() {
         StackTraceElement element = getCallerTrace();
@@ -42,7 +56,9 @@ public class TraceTools {
     }
 
     /**
-     * Retrieves only the class name of the caller.
+     * Retrieves only the simple class name of the caller.
+     *
+     * @return The caller's class name without package prefix, or {@code "Unknown"} if unavailable.
      */
     public static @NotNull String getCallerClassName() {
         StackTraceElement element = getCallerTrace();
@@ -55,11 +71,14 @@ public class TraceTools {
 
     /**
      * Retrieves the caller's trace in a customizable format.
+     * <p>
+     * Allows including the class name, method name, and line number in the trace output.
+     * </p>
      *
-     * @param includeClass Whether to include the class name.
+     * @param includeClass  Whether to include the class name.
      * @param includeMethod Whether to include the method name.
-     * @param includeLine Whether to include the line number.
-     * @return Formatted trace string.
+     * @param includeLine   Whether to include the line number.
+     * @return A formatted string containing the requested caller trace information.
      */
     public static @NotNull String getCallerTraceFormatted(boolean includeClass, boolean includeMethod, boolean includeLine) {
         StackTraceElement element = getCallerTrace();

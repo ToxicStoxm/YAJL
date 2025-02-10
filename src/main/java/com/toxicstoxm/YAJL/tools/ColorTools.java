@@ -7,6 +7,22 @@ import org.jetbrains.annotations.Nullable;
 import java.awt.*;
 import java.util.Random;
 
+/**
+ * Utility class for handling color-related operations, including conversions
+ * between {@code java.awt.Color} and ANSI escape codes, random color generation,
+ * and color mixing.
+ * <p>
+ * This class provides methods to:
+ * <ul>
+ *   <li>Convert {@code Color} objects to and from ANSI escape codes.</li>
+ *   <li>Generate deterministic random colors based on a string seed.</li>
+ *   <li>Mix multiple colors to produce an averaged result.</li>
+ *   <li>Strip ANSI color codes from text.</li>
+ * </ul>
+ * </p>
+ *
+ * <p><b>Note:</b> This class does not support HSL/HSV color spaces.</p>
+ */
 public class ColorTools {
 
     /**

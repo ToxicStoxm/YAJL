@@ -11,6 +11,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.PrintStream;
 import java.util.List;
 
+/**
+ * Main YAJL configuration class.
+ *
+ * @implNote YAJSI compatible
+ */
 @Builder
 @Getter
 @Setter(onParam_ = @NotNull)
@@ -98,11 +103,11 @@ public class YAJLManagerConfig {
 
     @Builder.Default
     @YAMLSetting(name = "Log-Area-Filter-Patterns", comments = {
-            "Controls which logger instances are enabled based on their identifier.",
-            "Filtering methods:",
-            " - Exact identifier (e.g., 'com.example.Main') enables a specific logger.",
-            " - Wildcard (*) (e.g., 'com.*') enables all loggers starting with 'com.'.",
-            " - Regex (e.g., '^<regex>$') allows advanced filtering of logger instances."
+            "Defines which logger instances are enabled based on their identifier.",
+            "Supported filtering methods:",
+            " - Exact match: 'com.example.Main' enables only that logger.",
+            " - Wildcard (*) match: 'com.*' enables all loggers starting with 'com.'.",
+            " - Regex match: Use '^<regex>$' for advanced pattern matching."
     })
     private List<String> logAreaFilterPatterns = List.of("*");
 

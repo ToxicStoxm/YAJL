@@ -4,8 +4,23 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+/**
+ * Utility class for handling string operations, primarily for converting objects
+ * (including arrays, collections, and maps) into readable string representations.
+ * <p>
+ * This class ensures proper formatting of nested structures and detects circular
+ * references in collections and maps to prevent infinite recursion.
+ * </p>
+ */
 public class StringTools {
 
+    /**
+     * Computes a string representation of an object, supporting arrays, collections,
+     * and maps while detecting circular references.
+     *
+     * @param o The object to convert to a string.
+     * @return A string representation of the object.
+     */
     public static String computeToString(Object o) {
         if (o == null) return "null";
 
@@ -54,6 +69,14 @@ public class StringTools {
         return Objects.toString(o);
     }
 
+    /**
+     * Converts a collection to a string representation, handling nested collections
+     * and detecting circular references to prevent infinite recursion.
+     *
+     * @param collection The collection to convert.
+     * @param seen A set tracking already processed objects to detect circular references.
+     * @return A formatted string representation of the collection.
+     */
     private static @NotNull String computeCollectionToString(Collection<?> collection, @NotNull Set<Object> seen) {
         if (seen.contains(collection)) return "[...] (circular reference detected)";
         seen.add(collection);
@@ -69,6 +92,14 @@ public class StringTools {
         return sb.toString();
     }
 
+    /**
+     * Converts a map to a string representation, handling nested maps and detecting
+     * circular references to prevent infinite recursion.
+     *
+     * @param map The map to convert.
+     * @param seen A set tracking already processed objects to detect circular references.
+     * @return A formatted string representation of the map.
+     */
     private static @NotNull String computeMapToString(Map<?, ?> map, @NotNull Set<Object> seen) {
         if (seen.contains(map)) return "{...} (circular reference detected)";
         seen.add(map);

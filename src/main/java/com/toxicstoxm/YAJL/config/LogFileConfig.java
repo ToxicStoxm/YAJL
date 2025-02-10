@@ -4,6 +4,11 @@ import com.toxicstoxm.YAJSI.api.settings.YAMLSetting;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * YAJL LogFile configuration class.
+ *
+ * @implNote YAJSI compatible
+ */
 @Builder
 @Getter
 @Setter(onParam_ = @NotNull)

@@ -29,7 +29,7 @@ public class LogFileHandler {
 
     /**
      * Initializes / de-initializes the log manager.
-     * @param enable
+     * @param enable if {@code true}, enables and initializes the logger, otherwise shutdown and de-initialize the logger framework.
      */
     public void setEnabled(boolean enable) {
         if (enable) {
@@ -200,6 +200,10 @@ public class LogFileHandler {
         return logFiles;
     }
 
+    /**
+     * Deletes the specified file.
+     * @param f the file to delete.
+     */
     private void deleteFile(@NotNull File f) {
         // If no compression is enabled, delete the file
         if (f.delete()) {

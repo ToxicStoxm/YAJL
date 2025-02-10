@@ -4,6 +4,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 
+/**
+ * Default YAJL LogLevels.
+ */
 public enum LogLevels implements LogLevel {
     STACKTRACE("STACKTRACE", new Color(71, 71, 71), -3),
     VERBOSE("VERBOSE", new Color(131, 0, 255), -2),
@@ -38,7 +41,13 @@ public enum LogLevels implements LogLevel {
         return level;
     }
 
-    public static @NotNull LogLevel fromLevel(int level) {
+    /**
+     * Returns the corresponding LogLevel to the specified level value.
+     * @param level log level value to get the corresponding log level for.
+     * @return returns the corresponding LogLevel to the specified level value
+     * @throws IllegalArgumentException if the provided has no corresponding log level
+     */
+    public static @NotNull LogLevel fromLevel(int level) throws IllegalArgumentException {
         for (LogLevel lev : LogLevels.values()) {
             if (lev.getLevel() == level) {
                 return lev;

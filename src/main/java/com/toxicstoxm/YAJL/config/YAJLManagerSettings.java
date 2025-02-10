@@ -2,8 +2,12 @@ package com.toxicstoxm.YAJL.config;
 
 import com.toxicstoxm.YAJL.level.LogLevel;
 
+import java.io.PrintStream;
 import java.util.List;
 
+/**
+ * YAJL configuration interface.
+ */
 public interface YAJLManagerSettings {
 
     // Log Level Settings

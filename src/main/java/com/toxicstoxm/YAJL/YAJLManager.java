@@ -1,6 +1,5 @@
 package com.toxicstoxm.YAJL;
 
-import com.toxicstoxm.YAJL.area.LogFilter;
 import com.toxicstoxm.YAJL.config.LogFileConfig;
 import com.toxicstoxm.YAJL.config.YAJLManagerConfig;
 import com.toxicstoxm.YAJL.config.YAJLManagerSettings;
@@ -13,17 +12,41 @@ import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Singleton manager class for YAJL, responsible for configuration management and logging setup.
+ * <p>
+ * This class provides methods to configure YAJL, manage logging settings, and interact with
+ * the configuration system, including YAML-based configuration persistence.
+ * </p>
+ *
+ * @see #getInstance()
+ * @see #configure()
+ * @see YAJLManagerConfig
+ * @see YAJLManagerSettings
+ * @author ToxicStoxm
+ */
 public class YAJLManager implements YAJLManagerSettings {
 
-    protected YAJLManagerConfig config;
-    protected LogFileHandler logFileHandler;
+    protected YAJLManagerConfig config;  // Holds the current logging configuration
+    protected LogFileHandler logFileHandler;  // Manages log file operations
 
+    private static YAJLManager instance = null; // Singleton instance
+
+    /**
+     * Private constructor to enforce the singleton pattern.
+     *
+     * @param defaultConfig The default configuration to use for the YAJL manager.
+     */
     private YAJLManager(YAJLManagerConfig defaultConfig) {
         this.config = defaultConfig;
     }
 
-    private static YAJLManager instance = null;
-
+    /**
+     * Returns the singleton instance of the YAJLManager, initializing it if necessary.
+     *
+     * @param defaultSettings The default settings to use if the instance is created.
+     * @return The singleton instance of YAJLManager.
+     */
     public static YAJLManager getInstance(YAJLManagerConfig defaultSettings) {
         if (instance == null) {
             instance = new YAJLManager(defaultSettings == null ? YAJLManagerConfig.builder().build() : defaultSettings);
@@ -32,15 +55,25 @@ public class YAJLManager implements YAJLManagerSettings {
         return instance;
     }
 
+    /**
+     * Returns the singleton instance using default settings.
+     *
+     * @return The singleton instance of YAJLManager.
+     */
     public static YAJLManager getInstance() {
         return getInstance(null);
     }
 
+    /**
+     * Initializes the YAJLManager, setting up configuration, log file handling,
+     * and shutdown hooks.
+     */
     private void init() {
         if (config.isEnableYAMLConfig()) {
             SettingsManager.getInstance().registerYAMLConfiguration(config);
         }
 
+        // Add a shutdown hook to properly close resources before the application exits
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             if (!config.isMuteLogger()) {
                 System.out.println("[YAJL] Processing shutdown handles");
@@ -66,11 +99,22 @@ public class YAJLManager implements YAJLManagerSettings {
         setBridgeYAJSI(config.isBridgeYAJSI());
     }
 
+    /**
+     * Configures and returns an instance of YAJLManagerSettings.
+     *
+     * @return An instance of YAJLManagerSettings.
+     */
     @Contract(value = " -> new", pure = true)
     public static @NotNull YAJLManagerSettings configure() {
         return getInstance();
     }
 
+    /**
+     * Configures and returns an instance of YAJLManagerSettings using the specified settings.
+     *
+     * @param defaultSettings The default settings for YAJLManager.
+     * @return An instance of YAJLManagerSettings.
+     */
     public static @NotNull YAJLManagerSettings configure(YAJLManagerConfig defaultSettings) {
         return getInstance(defaultSettings);
     }
