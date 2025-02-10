@@ -9,6 +9,7 @@ import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,7 +49,7 @@ public class YAJLManager implements YAJLManagerSettings {
                 if (!config.isMuteLogger()) {
                     System.out.println("[YAJL] Saving YAML configuration.");
                 }
-                SettingsManager.getInstance().save(config);
+                saveSettingsToYAMLConfigFile();
             }
             if (!config.isMuteLogger()) {
                 System.out.println("[YAJL] Shutting down log file handler");
@@ -72,6 +73,45 @@ public class YAJLManager implements YAJLManagerSettings {
 
     public static @NotNull YAJLManagerSettings configure(YAJLManagerConfig defaultSettings) {
         return getInstance(defaultSettings);
+    }
+
+    /**
+     * Reloads settings from the YAML configuration file.
+     * <p><b>Note:</b> This only works if YAML configuration is enabled.</p>
+     *
+     * @return The current instance for method chaining.
+     */
+    public YAJLManagerSettings reloadSettingsFromYAMLConfigFile() {
+        if (config.isEnableYAMLConfig()) {
+            SettingsManager.getInstance().reloadFromFile(config);
+        }
+        return this;
+    }
+
+    /**
+     * Saves the current settings to the YAML configuration file.
+     * <p><b>Note:</b> This only works if YAML configuration is enabled.</p>
+     *
+     * @return The current instance for method chaining.
+     */
+    public YAJLManagerSettings saveSettingsToYAMLConfigFile() {
+        if (config.isEnableYAMLConfig()) {
+            SettingsManager.getInstance().save(config);
+        }
+        return this;
+    }
+
+    /**
+     * Restores default settings and saves them to the YAML configuration file.
+     * <p><b>Note:</b> This only works if YAML configuration is enabled.</p>
+     *
+     * @return The current instance for method chaining.
+     */
+    public YAJLManagerSettings restoreDefaultSettings() {
+        if (config.isEnableYAMLConfig()) {
+            SettingsManager.getInstance().restoreDefaultsFor(config);
+        }
+        return this;
     }
 
     public YAJLManagerSettings setDefaultLogLevel(LogLevel defaultLogLevel) {
@@ -181,6 +221,18 @@ public class YAJLManager implements YAJLManagerSettings {
     @Override
     public YAJLManagerSettings setMinimumLogLevel(int minimumLogLevel) {
         config.setMinimumLogLevel(minimumLogLevel);
+        return this;
+    }
+
+    @Override
+    public YAJLManagerSettings setFilterPatternsAsBlacklist(boolean filterPatternsAsBlacklist) {
+        config.setFilterPatternsAsBlacklist(filterPatternsAsBlacklist);
+        return this;
+    }
+
+    @Override
+    public YAJLManagerSettings setLogStream(PrintStream logStream) {
+        config.setLogStream(logStream);
         return this;
     }
 }

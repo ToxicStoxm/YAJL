@@ -1,6 +1,6 @@
 package com.toxicstoxm.YAJL.config;
 
-import com.toxicstoxm.YAJL.area.LogFilter;
+import com.toxicstoxm.YAJL.LogFilter;
 import com.toxicstoxm.YAJL.level.LogLevel;
 import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJSI.api.settings.YAMLConfiguration;
@@ -8,6 +8,7 @@ import com.toxicstoxm.YAJSI.api.settings.YAMLSetting;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.PrintStream;
 import java.util.List;
 
 @Builder
@@ -88,6 +89,14 @@ public class YAJLManagerConfig {
     private String logMessageLayout = "{color:hex=#545454}[{time:format=HH:mm:ss}] [{prefix}]{levelColor} [{level}]: {message}";
 
     @Builder.Default
+    @YAMLSetting(name = "Log-Area-Filter-Patterns-As-Blacklist", comments = {
+            "If set to true, the 'Log-Area-Filter-Patterns' list will be treated as a blacklist instead of a whitelist.",
+            " - Whitelist mode: Only loggers matching the patterns are enabled.",
+            " - Blacklist mode: Loggers matching the patterns are disabled, and all others remain enabled."
+    })
+    private boolean filterPatternsAsBlacklist = false;
+
+    @Builder.Default
     @YAMLSetting(name = "Log-Area-Filter-Patterns", comments = {
             "Controls which logger instances are enabled based on their identifier.",
             "Filtering methods:",
@@ -104,6 +113,10 @@ public class YAJLManagerConfig {
     @Builder.Default
     @YAMLSetting(name = "Log-File")
     private LogFileConfig logFileConfig = LogFileConfig.builder().build();
+
+    @Builder.Default
+    @YAMLSetting.Ignore
+    private PrintStream logStream = System.out;
 
     @Override
     public String toString() {

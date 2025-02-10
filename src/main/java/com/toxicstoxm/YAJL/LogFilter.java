@@ -36,6 +36,7 @@ public class LogFilter {
      * Checks if a given log area is allowed based on filters.
      */
     public boolean isLogAreaAllowed(String logArea) {
-        return logAreaPatterns.stream().anyMatch(pattern -> pattern.matcher(logArea).matches());
+        boolean isAllowed = logAreaPatterns.stream().anyMatch(pattern -> pattern.matcher(logArea).matches());
+        return YAJLManager.getInstance().config.isFilterPatternsAsBlacklist() != isAllowed;
     }
 }

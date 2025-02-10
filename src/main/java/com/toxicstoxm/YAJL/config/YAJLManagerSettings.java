@@ -48,4 +48,8 @@ public interface YAJLManagerSettings {
     YAJLManagerSettings setLogMessageLayout(String logMessageLayout);
 
     YAJLManagerSettings setMinimumLogLevel(int minimumLogLevel);
+
+    YAJLManagerSettings setFilterPatternsAsBlacklist(boolean filterPatternsAsBlacklist);
+
+    YAJLManagerSettings setLogStream(PrintStream logStream);
 }

@@ -687,8 +687,8 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         // Process the log message by replacing placeholders with actual values
         String finalLogMessage = processLogMessage(messageLayout, args) + ColorTools.resetAnsi();
 
-        // Output the formatted log message to the console
-        System.out.println(finalLogMessage);
+        // Output the formatted log message to the log stream
+        YAJLManager.getInstance().config.getLogStream().println(finalLogMessage);
 
         // Write the formatted log message to the log file
         YAJLManager.getInstance().logFileHandler.writeLogMessage(finalLogMessage);
