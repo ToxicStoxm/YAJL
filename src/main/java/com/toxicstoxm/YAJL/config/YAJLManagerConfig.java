@@ -94,26 +94,8 @@ public class YAJLManagerConfig {
     private String logMessageLayout = "{color:hex=#545454}[{time:format=HH:mm:ss}] [{prefix}]{levelColor} [{level}]: {message}";
 
     @Builder.Default
-    @YAMLSetting(name = "Log-Area-Filter-Patterns-As-Blacklist", comments = {
-            "If set to true, the 'Log-Area-Filter-Patterns' list will be treated as a blacklist instead of a whitelist.",
-            " - Whitelist mode: Only loggers matching the patterns are enabled.",
-            " - Blacklist mode: Loggers matching the patterns are disabled, and all others remain enabled."
-    })
-    private boolean filterPatternsAsBlacklist = false;
-
-    @Builder.Default
-    @YAMLSetting(name = "Log-Area-Filter-Patterns", comments = {
-            "Defines which logger instances are enabled based on their identifier.",
-            "Supported filtering methods:",
-            " - Exact match: 'com.example.Main' enables only that logger.",
-            " - Wildcard (*) match: 'com.*' enables all loggers starting with 'com.'.",
-            " - Regex match: Use '^<regex>$' for advanced pattern matching."
-    })
-    private List<String> logAreaFilterPatterns = List.of("*");
-
-    @Builder.Default
-    @YAMLSetting.Ignore
-    private LogFilter logFilter = new LogFilter(List.of("*"));
+    @YAMLSetting(name = "Log-Area-Filter")
+    private LogAreaFilterConfig logAreaFilterConfig = LogAreaFilterConfig.builder().build();
 
     @Builder.Default
     @YAMLSetting(name = "Log-File")
@@ -134,7 +116,7 @@ public class YAJLManagerConfig {
                 ", bridgeYAJSI=" + bridgeYAJSI +
                 ", stackTraceLengthLimit=" + stackTraceLengthLimit +
                 ", logMessageLayout='" + logMessageLayout + '\'' +
-                ", logAreaFilterPatterns=" + logAreaFilterPatterns +
+                ", logAreaFilterConfig=" + logAreaFilterConfig +
                 ", logFileConfig=" + logFileConfig +
                 '}';
     }

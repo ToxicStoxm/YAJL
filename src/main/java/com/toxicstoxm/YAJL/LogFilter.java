@@ -39,6 +39,6 @@ public class LogFilter {
      */
     public boolean isLogAreaAllowed(String logArea) {
         boolean isAllowed = logAreaPatterns.stream().anyMatch(pattern -> pattern.matcher(logArea).matches());
-        return YAJLManager.getInstance().config.isFilterPatternsAsBlacklist() != isAllowed;
+        return YAJLManager.getInstance().config.getLogAreaFilterConfig().isFilterPatternsAsBlacklist() != isAllowed;
     }
 }

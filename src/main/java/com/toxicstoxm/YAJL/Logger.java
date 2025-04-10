@@ -589,7 +589,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
      */
     public void log(@NotNull LogLevel logLevel, String message, Object... objects) {
         if (YAJLManager.getInstance().config.isMuteLogger() ||
-                !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) {
+                !YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
             return;
         }
 
@@ -653,7 +653,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
     public void log(@NotNull LogLevel logLevel, String message) {
         // Check if logging is muted or if the log area is not allowed
         if (YAJLManager.getInstance().config.isMuteLogger() ||
-                !YAJLManager.getInstance().config.getLogFilter().isLogAreaAllowed(logArea)) {
+                !YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
             return;
         }
 

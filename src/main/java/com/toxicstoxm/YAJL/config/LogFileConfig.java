@@ -40,6 +40,14 @@ public class LogFileConfig {
     private int limitationNumber = 5;
 
     @Builder.Default
+    @YAMLSetting(name = "Compressed-File-Size-Limit", comments = {
+            "If a logfile still exceeds this limit after compression, it will be deleted.",
+            "This check is NOT done on already existing files!",
+            "Value in Kilobytes"
+    })
+    private int compressedFileSizeLimit = 50;
+
+    @Builder.Default
     @YAMLSetting(name = "Compress-Old-Log-Files", comments = {
             "If true, old log files are automatically compressed (.zip or .gz) to save space.",
             "Only applies when logs are rotated (i.e., when limitation mode is 'size' or 'files')."

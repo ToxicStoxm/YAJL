@@ -248,7 +248,7 @@ public class LogFileHandler {
             long compressedFileSize = compressedFile.length();
 
             // If the compressed file is still too large, delete it
-            if (compressedFileSize > YAJLManager.getInstance().config.getLogFileConfig().getLimitationNumber() * 1024L) {
+            if (compressedFileSize > YAJLManager.getInstance().config.getLogFileConfig().getCompressedFileSizeLimit() * 1024L) {
                 if (compressedFile.delete()) {
                     if (!YAJLManager.getInstance().config.isMuteLogger()) {
                         System.out.println("[YAJL] Deleted compressed log file: " + compressedFile.getName() + " because it exceeds the size limit.");

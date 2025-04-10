@@ -94,7 +94,7 @@ public class YAJLManager implements YAJLManagerSettings {
             }
         }));
 
-        setLogAreaFilterPatterns(config.getLogAreaFilterPatterns());
+        setLogAreaFilterPatterns(config.getLogAreaFilterConfig().getLogAreaFilterPatterns());
         logFileHandler = new LogFileHandler();
         setBridgeYAJSI(config.isBridgeYAJSI());
     }
@@ -189,15 +189,15 @@ public class YAJLManager implements YAJLManagerSettings {
 
     @Override
     public YAJLManagerSettings setLogAreaFilterPatterns(List<String> logAreaFilterPatterns) {
-        config.setLogAreaFilterPatterns(logAreaFilterPatterns);
-        config.setLogFilter(new LogFilter(logAreaFilterPatterns));
+        config.getLogAreaFilterConfig().setLogAreaFilterPatterns(logAreaFilterPatterns);
+        config.getLogAreaFilterConfig().setLogFilter(new LogFilter(logAreaFilterPatterns));
         return this;
     }
 
     @Override
     public YAJLManagerSettings addLogAreaFilterPattern(String logAreaFilterPattern) {
-        config.getLogAreaFilterPatterns().add(logAreaFilterPattern);
-        config.getLogFilter().addFilterPattern(logAreaFilterPattern);
+        config.getLogAreaFilterConfig().getLogAreaFilterPatterns().add(logAreaFilterPattern);
+        config.getLogAreaFilterConfig().getLogFilter().addFilterPattern(logAreaFilterPattern);
         return this;
     }
 
@@ -270,7 +270,7 @@ public class YAJLManager implements YAJLManagerSettings {
 
     @Override
     public YAJLManagerSettings setFilterPatternsAsBlacklist(boolean filterPatternsAsBlacklist) {
-        config.setFilterPatternsAsBlacklist(filterPatternsAsBlacklist);
+        config.getLogAreaFilterConfig().setFilterPatternsAsBlacklist(filterPatternsAsBlacklist);
         return this;
     }
 
