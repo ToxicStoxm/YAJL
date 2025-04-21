@@ -1,12 +1,12 @@
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
-    id 'java-library'
-    id "com.vanniktech.maven.publish" version "0.31.0"
+    id("java-library")
+    id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
-group = 'com.toxicstoxm'
-version = '2.0.5'
+group = "com.toxicstoxm"
+version = "2.0.6"
 
 repositories {
     mavenCentral()
@@ -14,47 +14,45 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.38'
-    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+    compileOnly("org.projectlombok:lombok:1.18.38")
+    annotationProcessor("org.projectlombok:lombok:1.18.38")
 
-    implementation 'org.jetbrains:annotations:26.0.2'
-    annotationProcessor 'org.jetbrains:annotations:26.0.2'
+    implementation("org.jetbrains:annotations:26.0.2")
+    annotationProcessor("org.jetbrains:annotations:26.0.2")
 
-    implementation 'org.yaml:snakeyaml:2.4'
+    implementation("org.yaml:snakeyaml:2.4")
 
-    implementation 'com.toxicstoxm.YAJSI:YAJSI:2.1.4'
+    implementation("com.toxicstoxm.YAJSI:YAJSI:2.1.5")
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.0-M2'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0-M2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
-tasks.named('test', Test) {
+tasks.test {
     useJUnitPlatform()
 
-    maxHeapSize = '1G'
+    maxHeapSize = "1G"
 
     testLogging {
-        events "passed", "failed", "skipped"
+        events("passed", "failed", "skipped")
         outputs.upToDateWhen {false}
         showStandardStreams = true  // <-- This ensures System.out output is shown
     }
 }
 
-
 tasks.jar {
-    dependsOn('fatJar')
+    dependsOn("fatJar")
     manifest {
-        attributes ["Main-Class"] = 'com.toxicstoxm.YAJL.YAJLLogger'
+        attributes ["Main-Class"] = "com.toxicstoxm.YAJL.YAJLLogger"
     }
 }
-
 
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
     signAllPublications()
 
-    coordinates("com.toxicstoxm.YAJL", "YAJL", version)
+    coordinates("com.toxicstoxm.YAJL", "YAJL", version as String?)
 
     pom {
         name = "YAJL"
@@ -83,18 +81,20 @@ mavenPublishing {
     }
 }
 
-javadoc {
-    failOnError = false
-}
-
-tasks.register('fatJar', Jar) {
+tasks.register<Jar>("fatJar") {
     manifest {
-        attributes ["Main-Class"] = 'com.toxicstoxm.YAJL.YAJLLogger'
+        attributes["Main-Class"] = "com.toxicstoxm.YAJL.YAJLLogger"
     }
 
     archiveBaseName = "${rootProject.name}-fat"
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
+    from(configurations.compileClasspath.get().filter { it.isDirectory || it.isFile }.map {
+        if (it.isDirectory) it else zipTree(it)
+    })
+    with(tasks.jar.get())
+}
+
+tasks.withType<Javadoc>().configureEach {
+    isFailOnError = false
 }
