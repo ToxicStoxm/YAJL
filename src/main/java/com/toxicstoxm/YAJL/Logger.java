@@ -551,8 +551,14 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
             return;
         }
 
+        // Only use debug log level for printing extra info if the provided log level is higher or equal
+        // Otherwise use the provided lower log level
+        LogLevel extraInfoLogLevel = logLevel.getLevel() < LogLevels.DEBUG.getLevel()
+                ? logLevel
+                : LogLevels.DEBUG;
+
         // Include debugging metadata: thread name and timestamp
-        log(LogLevels.DEBUG, "Thread: {}, Timestamp: {}", Thread.currentThread().getName(), System.currentTimeMillis());
+        log(extraInfoLogLevel, "Thread: {}, Timestamp: {}", Thread.currentThread().getName(), System.currentTimeMillis());
 
         // Log the exception's class name and message
         log(logLevel, "Exception [{}]: {}", throwable.getClass().getName(), throwable.getMessage());
