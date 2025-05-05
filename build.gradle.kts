@@ -24,7 +24,7 @@ dependencies {
 
     implementation("com.toxicstoxm.YAJSI:YAJSI:2.1.5")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0-M2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.0-M3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
