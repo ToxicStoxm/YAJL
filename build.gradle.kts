@@ -18,7 +18,7 @@ dependencies {
     implementation("org.jetbrains:annotations:26.0.2")
     annotationProcessor("org.jetbrains:annotations:26.0.2")
 
-    implementation("org.yaml:snakeyaml:2.4")
+    implementation("org.yaml:snakeyaml:2.5")
 
     implementation("com.toxicstoxm.YAJSI:YAJSI:2.1.5")
 
