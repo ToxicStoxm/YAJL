@@ -15,8 +15,8 @@ dependencies {
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
 
-    implementation("org.jetbrains:annotations:26.0.2")
-    annotationProcessor("org.jetbrains:annotations:26.0.2")
+    implementation("org.jetbrains:annotations:26.0.2-1")
+    annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
     implementation("org.yaml:snakeyaml:2.4")
 
