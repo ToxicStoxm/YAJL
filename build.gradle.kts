@@ -20,7 +20,7 @@ dependencies {
 
     implementation("org.yaml:snakeyaml:2.4")
 
-    implementation("com.toxicstoxm.YAJSI:YAJSI:2.1.5")
+    implementation("com.toxicstoxm.YAJSI:YAJSI:2.3.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
