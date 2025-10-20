@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.toxicstoxm"
-version = "2.0.6"
+version = "2.1.0"
 
 repositories {
     mavenCentral()
@@ -12,18 +12,16 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.projectlombok:lombok:1.18.38")
-    annotationProcessor("org.projectlombok:lombok:1.18.38")
+    compileOnly("org.projectlombok:lombok:1.18.42")
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
 
-    implementation("org.jetbrains:annotations:26.0.2")
-    annotationProcessor("org.jetbrains:annotations:26.0.2")
+    implementation("org.jetbrains:annotations:26.0.2-1")
+    annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
-    implementation("org.yaml:snakeyaml:2.4")
+    implementation("com.toxicstoxm.YAJSI:YAJSI:2.3.0")
 
-    implementation("com.toxicstoxm.YAJSI:YAJSI:2.1.5")
-
-    testImplementation("org.junit.jupiter:junit-jupiter:5.13.4")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.0")
 }
 
 tasks.test {
