@@ -764,7 +764,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         // Append any remaining text from the original layout
         matcher.appendTail(result);
 
-        return result.toString();
+        return result.toString().replace("\\\\", "\\").replace("\\$", "$");
     }
 
     /**

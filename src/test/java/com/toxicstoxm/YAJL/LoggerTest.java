@@ -162,4 +162,11 @@ class LoggerTest {
 
         return root;
     }
+
+    @Test
+    public void testEscaping() {
+        String test = logger.format("Hello {} testing //// $$$ //$$ //$$ /$/$$//$/$ testing  {}; /", 5, true);
+        logger.log(test);
+        assertEquals("Hello 5 testing //// $$$ //$$ //$$ /$/$$//$/$ testing  true; /", test);
+    }
 }
