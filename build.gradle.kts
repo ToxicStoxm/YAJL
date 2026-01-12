@@ -1,10 +1,10 @@
 plugins {
     id("java-library")
-    id("com.vanniktech.maven.publish") version "0.34.0"
+    id("com.vanniktech.maven.publish") version "0.35.0"
 }
 
 group = "com.toxicstoxm"
-version = "2.1.0"
+version = "2.2.0"
 
 repositories {
     mavenCentral()
@@ -18,7 +18,7 @@ dependencies {
     implementation("org.jetbrains:annotations:26.0.2-1")
     annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
-    implementation("com.toxicstoxm.YAJSI:YAJSI:2.3.0")
+    implementation("com.toxicstoxm:YAJSI:3.0.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:6.0.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.1")
@@ -48,11 +48,11 @@ mavenPublishing {
 
     signAllPublications()
 
-    coordinates("com.toxicstoxm.YAJL", "YAJL", version as String?)
+    coordinates("com.toxicstoxm", "YAJL", version as String?)
 
     pom {
         name = "YAJL"
-        description = "YAJL (Yet another Java logger) is an easy to use logger that can take your project to the next level."
+        description = "YAJL (Yet another Java logger) is an easy to use logging framework, with a lot of features."
         inceptionYear = "2024"
         url = "https://github.com/ToxicStoxm/YAJL/"
         licenses {
@@ -66,7 +66,7 @@ mavenPublishing {
             developer {
                 id = "toxicstoxm"
                 name = "ToxicStoxm"
-                url = "https://github.com/ToxicStoxm/"
+                url = "https://toxicstoxm.com"
             }
         }
         scm {
@@ -89,6 +89,14 @@ tasks.register<Jar>("fatJar") {
         if (it.isDirectory) it else zipTree(it)
     })
     with(tasks.jar.get())
+}
+
+tasks.withType<Jar>().configureEach {
+    manifest {
+        attributes(
+            "Automatic-Module-Name" to "YAJL"
+        )
+    }
 }
 
 tasks.withType<Javadoc>().configureEach {
