@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
  * @author ToxicStoxm
  */
 @Builder
-public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
+public class Logger {
 
     @Builder.Default
     private String logPrefix = "";
@@ -68,7 +68,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         // ==========================
         // Retrieves the log level name from arguments or falls back to the default log level.
         placeholderHandlers.put("level", args ->
-                args.getOrDefault("level", () -> YAJLManager.getInstance().config.getDefaultLogLevel().getName()).getData()
+                args.getOrDefault("level", () -> YAJLManager.config.getDefaultLogLevel().getName()).getData()
         );
 
         // ==========================
@@ -76,9 +76,9 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         // ==========================
         // Returns ANSI color representation of the log level color if color coding is enabled.
         placeholderHandlers.put("levelColor", args -> {
-            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+            if (YAJLManager.config.isEnableColorCoding()) {
                 return args.getOrDefault("levelColor", () ->
-                        ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())
+                        ColorTools.toAnsi(YAJLManager.config.getDefaultLogLevel().getColor())
                 ).getData();
             } else {
                 return "";
@@ -107,7 +107,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         // Converts a hex color code to its ANSI equivalent if color coding is enabled.
         // Default color: White (#FFFFFF)
         placeholderHandlers.put("color", args -> {
-            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+            if (YAJLManager.config.isEnableColorCoding()) {
                 return ColorTools.toAnsi(Color.decode(args.getOrDefault("hex", () -> "#FFFFFF").getData()));
             } else {
                 return "";
@@ -155,7 +155,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         // ==========================
         // Generates a random ANSI color for the logger prefix if color coding is enabled.
         placeholderHandlers.put("prefixColor", args -> {
-            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+            if (YAJLManager.config.isEnableColorCoding()) {
                 return ColorTools.toAnsi(ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()));
             } else {
                 return "";
@@ -167,12 +167,12 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         // ==========================
         // Mixes the log level color and logger prefix color into a blended ANSI color if color coding is enabled.
         placeholderHandlers.put("mixLevelAndAreaColor", args -> {
-            if (YAJLManager.getInstance().config.isEnableColorCoding()) {
+            if (YAJLManager.config.isEnableColorCoding()) {
                 return ColorTools.toAnsi(
                         ColorTools.mixColors(
                                 ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()),
                                 ColorTools.fromAnsi(args.getOrDefault("levelColor", () ->
-                                        ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())
+                                        ColorTools.toAnsi(YAJLManager.config.getDefaultLogLevel().getColor())
                                 ).getData())
                         )
                 );
@@ -196,7 +196,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         String prefix = Arrays.stream(callerClassName.split("\\.")).toList().getLast();
 
         Logger newLogger = Logger.builder()
-                .logPrefix(prefix == null || prefix.isBlank() ? "" : prefix)
+                .logPrefix(prefix.isBlank() ? "" : prefix)
                 .logArea(callerClassName)
                 .build();
 
@@ -223,12 +223,12 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
             return;
         }
         StackTraceElement[] stackTraceElements = throwable.getStackTrace();
-        for (int i = 0; i < Math.min(stackTraceElements.length, YAJLManager.getInstance().config.getStackTraceLengthLimit()); i++) {
+        for (int i = 0; i < Math.min(stackTraceElements.length, YAJLManager.config.getStackTraceLengthLimit()); i++) {
             StackTraceElement traceElement = stackTraceElements[i];
             if (traceElement != null) stacktrace("{}", traceElement);
         }
-        if (stackTraceElements.length > YAJLManager.getInstance().config.getStackTraceLengthLimit()) {
-            stacktrace("... <{} lines>", stackTraceElements.length - YAJLManager.getInstance().config.getStackTraceLengthLimit());
+        if (stackTraceElements.length > YAJLManager.config.getStackTraceLengthLimit()) {
+            stacktrace("... <{} lines>", stackTraceElements.length - YAJLManager.config.getStackTraceLengthLimit());
         }
     }
 
@@ -594,8 +594,8 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
      * @param objects  the arguments to be formatted into the message
      */
     public void log(@NotNull LogLevel logLevel, String message, Object... objects) {
-        if (YAJLManager.getInstance().config.isMuteLogger() ||
-                !YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
+        if (YAJLManager.config.isMuteLogger() ||
+                !YAJLManager.config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
             return;
         }
 
@@ -658,13 +658,13 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
      */
     public void log(@NotNull LogLevel logLevel, String message) {
         // Check if logging is muted or if the log area is not allowed
-        if (YAJLManager.getInstance().config.isMuteLogger() ||
-                !YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
+        if (YAJLManager.config.isMuteLogger() ||
+                !YAJLManager.config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
             return;
         }
 
         // Skip logging if the message's level is below the configured minimum log level
-        if (logLevel.getLevel() < YAJLManager.getInstance().config.getMinimumLogLevel()) {
+        if (logLevel.getLevel() < YAJLManager.config.getMinimumLogLevel()) {
             return;
         }
 
@@ -677,7 +677,7 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         }
 
         // Retrieve the log message layout from the configuration
-        String messageLayout = YAJLManager.getInstance().config.getLogMessageLayout();
+        String messageLayout = YAJLManager.config.getLogMessageLayout();
 
         // Prepare placeholder values for the log message
         Map<String, StringPlaceholder> args = new HashMap<>();
@@ -694,10 +694,10 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
         String finalLogMessage = processLogMessage(messageLayout, args) + ColorTools.resetAnsi();
 
         // Output the formatted log message to the log stream
-        YAJLManager.getInstance().config.getLogStream().println(finalLogMessage);
+        YAJLManager.config.getLogStream().println(finalLogMessage);
 
         // Write the formatted log message to the log file
-        YAJLManager.getInstance().logFileHandler.writeLogMessage(finalLogMessage);
+        YAJLManager.logFileHandler.writeLogMessage(finalLogMessage);
     }
 
     /**
@@ -791,20 +791,6 @@ public class Logger implements com.toxicstoxm.YAJSI.api.logging.Logger {
      */
     private @NotNull String getPlaceholderLiteral() {
         return "{}";
-    }
-
-    /**
-     * Logs a message using the default log level from the YAJL configuration.
-     * <p>
-     * This method is used to quickly log messages without specifying a log level.
-     * The default log level is determined by the YAJLManager configuration.
-     * </p>
-     *
-     * @param s the message to log
-     */
-    @Override
-    public void log(String s) {
-        log(YAJLManager.getInstance().config.getDefaultLogLevel(), s);
     }
 
     /**

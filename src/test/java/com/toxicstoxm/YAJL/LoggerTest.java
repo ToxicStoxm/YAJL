@@ -1,6 +1,5 @@
 package com.toxicstoxm.YAJL;
 
-import com.toxicstoxm.YAJL.config.YAJLManagerConfig;
 import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJL.placeholders.LogMessagePlaceholder;
 import com.toxicstoxm.YAJL.placeholders.StringPlaceholder;
@@ -19,12 +18,11 @@ class LoggerTest {
 
     @BeforeEach
     void setUp() {
-        YAJLManager.configure(
-                YAJLManagerConfig.builder()
-                        .enableYAMLConfig(false)
-                        .build()
-        ).setMinimumLogLevel(-20)
-                .setStackTraceLengthLimit(20);
+        YAJLManager.getInstance();
+        YAJLManager.setEnableYAMLConfig(false);
+        YAJLManager.setMinimumLogLevel(-20);
+        YAJLManager.setStackTraceLengthLimit(20);
+
         logger = Logger.builder()
                 .logPrefix("TestPrefix")
                 .logArea("TestArea")
@@ -166,7 +164,7 @@ class LoggerTest {
     @Test
     public void testEscaping() {
         String test = logger.format("Hello {} testing //// $$$ //$$ //$$ /$/$$//$/$ testing  {}; /", 5, true);
-        logger.log(test);
+        logger.info(test);
         assertEquals("Hello 5 testing //// $$$ //$$ //$$ /$/$$//$/$ testing  true; /", test);
     }
 }

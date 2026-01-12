@@ -1,34 +1,32 @@
 package com.toxicstoxm.YAJL.config;
 
-import com.toxicstoxm.YAJL.LogFilter;
 import com.toxicstoxm.YAJL.level.LogLevel;
 import com.toxicstoxm.YAJL.level.LogLevels;
-import com.toxicstoxm.YAJSI.api.settings.YAMLConfiguration;
-import com.toxicstoxm.YAJSI.api.settings.YAMLSetting;
+import com.toxicstoxm.YAJSI.ConfigType;
+import com.toxicstoxm.YAJSI.SettingsBundle;
+import com.toxicstoxm.YAJSI.YAMLSetting;
+import com.toxicstoxm.YAJSI.upgrading.ConfigVersion;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.PrintStream;
-import java.util.List;
 
 /**
  * Main YAJL configuration class.
  *
  * @implNote YAJSI compatible
  */
-@Builder
 @Getter
 @Setter(onParam_ = @NotNull)
-@YAMLConfiguration
-@NoArgsConstructor
-@AllArgsConstructor
-public class YAJLManagerConfig {
+public class YAJLManagerConfig extends SettingsBundle {
+    public YAJLManagerConfig(File f) {
+        super(new ConfigVersion(1, 0, 0), f, ConfigType.SETTINGS);
+    }
 
-    @Builder.Default
     @YAMLSetting.Ignore
     private LogLevel defaultLogLevel = LogLevels.INFO;
 
-    @Builder.Default
     @YAMLSetting(name = "Minimum-Log-Level", comments = {
             "Specifies the minimum log level to be recorded.",
             "Higher values reduce log verbosity, showing only critical messages (e.g., warnings, errors, and fatal logs).",
@@ -45,38 +43,35 @@ public class YAJLManagerConfig {
     })
     private int minimumLogLevel = 0;
 
-    @Builder.Default
     @YAMLSetting(name = "Enable-Color-Coding", comments = {
             "If true, log messages will be color-coded for better readability."
     })
     private boolean enableColorCoding = true;
 
-    @Builder.Default
     @YAMLSetting(name = "Mute-Logger", comments = {
             "If true, logging will be completely disabled.",
             "No log messages will be recorded or displayed."
     })
     private boolean muteLogger = false;
 
-    @Builder.Default
     @YAMLSetting.Ignore
-    private boolean enableYAMLConfig = true;
+    private boolean enableYAMLConfig = false;
 
-    @Builder.Default
+    @YAMLSetting.Ignore
+    private String configPath = null;
+
     @YAMLSetting(name = "Bridge-YAJSI", comments = {
             "If true, the YAJL (Yet Another Java Logger) system will automatically provide",
             "YAJSI (Yet Another Java Settings Implementation) with a logger instance."
     })
     private boolean bridgeYAJSI = true;
 
-    @Builder.Default
     @YAMLSetting(name = "Stacktrace-Length-Limit", comments = {
             "Defines the maximum number of lines to be printed for a stack trace.",
             "A lower value keeps logs concise, while a higher value provides more debugging details."
     })
     private int stackTraceLengthLimit = 20;
 
-    @Builder.Default
     @YAMLSetting(name = "Log-Message-Layout", comments = {
             "Defines the format for log messages using placeholders.",
             "Supported placeholders:",
@@ -93,15 +88,12 @@ public class YAJLManagerConfig {
     })
     private String logMessageLayout = "{color:hex=#545454}[{time:format=HH:mm:ss}] [{prefix}]{levelColor} [{level}]: {message}";
 
-    @Builder.Default
     @YAMLSetting(name = "Log-Area-Filter")
     private LogAreaFilterConfig logAreaFilterConfig = LogAreaFilterConfig.builder().build();
 
-    @Builder.Default
     @YAMLSetting(name = "Log-File")
     private LogFileConfig logFileConfig = LogFileConfig.builder().build();
 
-    @Builder.Default
     @YAMLSetting.Ignore
     private PrintStream logStream = System.out;
 

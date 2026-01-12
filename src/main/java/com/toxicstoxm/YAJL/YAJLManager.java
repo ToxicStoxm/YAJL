@@ -2,12 +2,10 @@ package com.toxicstoxm.YAJL;
 
 import com.toxicstoxm.YAJL.config.LogFileConfig;
 import com.toxicstoxm.YAJL.config.YAJLManagerConfig;
-import com.toxicstoxm.YAJL.config.YAJLManagerSettings;
 import com.toxicstoxm.YAJL.level.LogLevel;
-import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import com.toxicstoxm.YAJSI.SettingsManager;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.List;
@@ -19,58 +17,32 @@ import java.util.List;
  * the configuration system, including YAML-based configuration persistence.
  * </p>
  *
- * @see #getInstance()
- * @see #configure()
  * @see YAJLManagerConfig
- * @see YAJLManagerSettings
  * @author ToxicStoxm
  */
-public class YAJLManager implements YAJLManagerSettings {
+public class YAJLManager {
+    protected static YAJLManagerConfig config = new YAJLManagerConfig(new File(""));;  // Holds the current logging configuration
+    protected static LogFileHandler logFileHandler;  // Manages log file operations
 
-    protected YAJLManagerConfig config;  // Holds the current logging configuration
-    protected LogFileHandler logFileHandler;  // Manages log file operations
+    private static YAJLManager instance;
 
-    private static YAJLManager instance = null; // Singleton instance
-
-    /**
-     * Private constructor to enforce the singleton pattern.
-     *
-     * @param defaultConfig The default configuration to use for the YAJL manager.
-     */
-    private YAJLManager(YAJLManagerConfig defaultConfig) {
-        this.config = defaultConfig;
-    }
-
-    /**
-     * Returns the singleton instance of the YAJLManager, initializing it if necessary.
-     *
-     * @param defaultSettings The default settings to use if the instance is created.
-     * @return The singleton instance of YAJLManager.
-     */
-    public static YAJLManager getInstance(YAJLManagerConfig defaultSettings) {
+    public static YAJLManager getInstance() {
         if (instance == null) {
-            instance = new YAJLManager(defaultSettings == null ? YAJLManagerConfig.builder().build() : defaultSettings);
+            instance = new YAJLManager();
             instance.init();
         }
         return instance;
     }
 
     /**
-     * Returns the singleton instance using default settings.
-     *
-     * @return The singleton instance of YAJLManager.
-     */
-    public static YAJLManager getInstance() {
-        return getInstance(null);
-    }
-
-    /**
      * Initializes the YAJLManager, setting up configuration, log file handling,
      * and shutdown hooks.
      */
-    private void init() {
+    public void init() {
+        logFileHandler = new LogFileHandler();
+
         if (config.isEnableYAMLConfig()) {
-            SettingsManager.getInstance().registerYAMLConfiguration(config);
+            SettingsManager.getInstance().registerConfig(config);
         }
 
         // Add a shutdown hook to properly close resources before the application exits
@@ -96,187 +68,95 @@ public class YAJLManager implements YAJLManagerSettings {
 
         setLogAreaFilterPatterns(config.getLogAreaFilterConfig().getLogAreaFilterPatterns());
         logFileHandler = new LogFileHandler();
-        setBridgeYAJSI(config.isBridgeYAJSI());
-    }
-
-    /**
-     * Configures and returns an instance of YAJLManagerSettings.
-     *
-     * @return An instance of YAJLManagerSettings.
-     */
-    @Contract(value = " -> new", pure = true)
-    public static @NotNull YAJLManagerSettings configure() {
-        return getInstance();
-    }
-
-    /**
-     * Configures and returns an instance of YAJLManagerSettings using the specified settings.
-     *
-     * @param defaultSettings The default settings for YAJLManager.
-     * @return An instance of YAJLManagerSettings.
-     */
-    public static @NotNull YAJLManagerSettings configure(YAJLManagerConfig defaultSettings) {
-        return getInstance(defaultSettings);
-    }
-
-    /**
-     * Reloads settings from the YAML configuration file.
-     * <p><b>Note:</b> This only works if YAML configuration is enabled.</p>
-     *
-     * @return The current instance for method chaining.
-     */
-    public YAJLManagerSettings reloadSettingsFromYAMLConfigFile() {
-        if (config.isEnableYAMLConfig()) {
-            SettingsManager.getInstance().reloadFromFile(config);
-        }
-        return this;
     }
 
     /**
      * Saves the current settings to the YAML configuration file.
      * <p><b>Note:</b> This only works if YAML configuration is enabled.</p>
      *
-     * @return The current instance for method chaining.
      */
-    public YAJLManagerSettings saveSettingsToYAMLConfigFile() {
+    public static void saveSettingsToYAMLConfigFile() {
         if (config.isEnableYAMLConfig()) {
             SettingsManager.getInstance().save(config);
         }
-        return this;
     }
 
-    /**
-     * Restores default settings and saves them to the YAML configuration file.
-     * <p><b>Note:</b> This only works if YAML configuration is enabled.</p>
-     *
-     * @return The current instance for method chaining.
-     */
-    public YAJLManagerSettings restoreDefaultSettings() {
-        if (config.isEnableYAMLConfig()) {
-            SettingsManager.getInstance().restoreDefaultsFor(config);
-        }
-        return this;
+    public static void setEnableYAMLConfig(boolean enable) {
+        config.setEnableYAMLConfig(enable);
     }
 
-    public YAJLManagerSettings setDefaultLogLevel(LogLevel defaultLogLevel) {
+    public static void setDefaultLogLevel(LogLevel defaultLogLevel) {
         config.setDefaultLogLevel(defaultLogLevel);
-        return this;
     }
 
-    public YAJLManagerSettings setEnableColorCoding(boolean enableColorCoding) {
+    public static void setEnableColorCoding(boolean enableColorCoding) {
         config.setEnableColorCoding(enableColorCoding);
-        return this;
     }
 
-    public YAJLManagerSettings setMuteLogger(boolean muteLogger) {
+    public static void setMuteLogger(boolean muteLogger) {
         config.setMuteLogger(muteLogger);
-        return this;
     }
 
-    public YAJLManagerSettings setBridgeYAJSI(boolean bridgeYAJSI) {
-        config.setBridgeYAJSI(bridgeYAJSI);
-        if (bridgeYAJSI) {
-            SettingsManager.configure()
-                    .setEnableLogBuffer(true)
-                    .setLogger(Logger.builder()
-                                    .logPrefix("YAJSI")
-                                    .logArea("YAJSI")
-                                    .build()
-                    );
-        }
-        return this;
-    }
-
-    @Override
-    public YAJLManagerSettings setLogAreaFilterPatterns(List<String> logAreaFilterPatterns) {
+    public static void setLogAreaFilterPatterns(List<String> logAreaFilterPatterns) {
         config.getLogAreaFilterConfig().setLogAreaFilterPatterns(logAreaFilterPatterns);
         config.getLogAreaFilterConfig().setLogFilter(new LogFilter(logAreaFilterPatterns));
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings addLogAreaFilterPattern(String logAreaFilterPattern) {
+    public static void addLogAreaFilterPattern(String logAreaFilterPattern) {
         config.getLogAreaFilterConfig().getLogAreaFilterPatterns().add(logAreaFilterPattern);
         config.getLogAreaFilterConfig().getLogFilter().addFilterPattern(logAreaFilterPattern);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings addLogAreaFilterPatterns(String... logAreaFilterPatterns) {
-        Arrays.stream(logAreaFilterPatterns).forEach(this::addLogAreaFilterPattern);
-        return this;
+    public static void addLogAreaFilterPatterns(String... logAreaFilterPatterns) {
+        Arrays.stream(logAreaFilterPatterns).forEach(YAJLManager::addLogAreaFilterPatterns);
     }
 
-    @Override
-    public YAJLManagerSettings setLogFileConfig(LogFileConfig logFileConfig) {
+    public static void setLogFileConfig(LogFileConfig logFileConfig) {
         config.setLogFileConfig(logFileConfig);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogFileEnabled(boolean enabled) {
+    public static void setLogFileEnabled(boolean enabled) {
         config.getLogFileConfig().setEnable(enabled);
         logFileHandler.setEnabled(enabled);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogFileLimitationMode(String limitationMode) {
+    public static void setLogFileLimitationMode(String limitationMode) {
         config.getLogFileConfig().setLimitationMode(limitationMode);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogFileLimitationNumber(int limitationNumber) {
+    public static void setLogFileLimitationNumber(int limitationNumber) {
         config.getLogFileConfig().setLimitationNumber(limitationNumber);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogFileCompressOldLogFiles(boolean compressOldLogFiles) {
+    public static void setLogFileCompressOldLogFiles(boolean compressOldLogFiles) {
         config.getLogFileConfig().setCompressOldLogFiles(compressOldLogFiles);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogFileLogDirectory(String logDirectory) {
+    public static void setLogFileLogDirectory(String logDirectory) {
         config.getLogFileConfig().setLogDirectory(logDirectory);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogFileLogFileName(String logFileName) {
+    public static void setLogFileLogFileName(String logFileName) {
         config.getLogFileConfig().setLogFileName(logFileName);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setStackTraceLengthLimit(int stackTraceLengthLimit) {
+    public static void setStackTraceLengthLimit(int stackTraceLengthLimit) {
         config.setStackTraceLengthLimit(stackTraceLengthLimit);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogMessageLayout(String logMessageLayout) {
+    public static void setLogMessageLayout(String logMessageLayout) {
         config.setLogMessageLayout(logMessageLayout);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setMinimumLogLevel(int minimumLogLevel) {
+    public static void setMinimumLogLevel(int minimumLogLevel) {
         config.setMinimumLogLevel(minimumLogLevel);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setFilterPatternsAsBlacklist(boolean filterPatternsAsBlacklist) {
+    public static void setFilterPatternsAsBlacklist(boolean filterPatternsAsBlacklist) {
         config.getLogAreaFilterConfig().setFilterPatternsAsBlacklist(filterPatternsAsBlacklist);
-        return this;
     }
 
-    @Override
-    public YAJLManagerSettings setLogStream(PrintStream logStream) {
+    public static void setLogStream(PrintStream logStream) {
         config.setLogStream(logStream);
-        return this;
     }
 }

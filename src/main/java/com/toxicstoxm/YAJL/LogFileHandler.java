@@ -1,7 +1,6 @@
 package com.toxicstoxm.YAJL;
 
 import com.toxicstoxm.YAJL.tools.ColorTools;
-import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -24,7 +23,7 @@ public class LogFileHandler {
     private File currentLogFile;
 
     public LogFileHandler() {
-        if (YAJLManager.getInstance().config.getLogFileConfig().isEnable()) setEnabled(true);
+        if (YAJLManager.config.getLogFileConfig().isEnable()) setEnabled(true);
     }
 
     /**
@@ -50,13 +49,13 @@ public class LogFileHandler {
      * @param message The log message to write.
      */
     public void writeLogMessage(String message) {
-        if (YAJLManager.getInstance().config.getLogFileConfig().isEnable()) logQueue.offer(message);
+        if (YAJLManager.config.getLogFileConfig().isEnable()) logQueue.offer(message);
     }
 
     private @NotNull String getLogDirectory() {
-        String configDir = SettingsManager.getInstance().getConfigDirectory();
+        String configDir = YAJLManager.config.getConfigPath();
         return configDir + "/"
-                + YAJLManager.getInstance().config.getLogFileConfig().getLogDirectory();
+                + YAJLManager.config.getLogFileConfig().getLogDirectory();
     }
 
     /**
@@ -67,7 +66,7 @@ public class LogFileHandler {
         try {
             Path logDirectoryPath = Path.of(logDirectory);
             Files.createDirectories(logDirectoryPath);
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.out.println("[YAJL] Initialized log file handler with directory: " + logDirectory);
             }
         } catch (IOException e) {
@@ -105,7 +104,7 @@ public class LogFileHandler {
                 writer.newLine();
             }
         } catch (IOException e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.err.println("[YAJL] Error writing log message: " + e.getMessage());
             }
         }
@@ -120,14 +119,14 @@ public class LogFileHandler {
                 startNewSessionLogFile(); // Start a new session log file if none exists
             }
 
-            String limitationMode = YAJLManager.getInstance().config.getLogFileConfig().getLimitationMode();
+            String limitationMode = YAJLManager.config.getLogFileConfig().getLimitationMode();
 
             // Rotate the log files if the limitation mode is "files"
             if (limitationMode.equalsIgnoreCase("files")) {
                 enforceFileLimit();
             }
         } catch (Exception e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.err.println("[YAJL] Failed to rotate logs: " + e.getMessage());
             }
         }
@@ -138,24 +137,24 @@ public class LogFileHandler {
      */
     private void startNewSessionLogFile() {
         try {
-            if (YAJLManager.getInstance().config.getLogFileConfig().isCompressOldLogFiles()) {
+            if (YAJLManager.config.getLogFileConfig().isCompressOldLogFiles()) {
                 for (File f : getSortedLogFiles()) {
                     if (!f.getName().endsWith(".gz")) compressLogFile(f);
                 }
             }
 
             String sessionId = generateSessionId();
-            String logFileNamePattern = YAJLManager.getInstance().config.getLogFileConfig().getLogFileName();
+            String logFileNamePattern = YAJLManager.config.getLogFileConfig().getLogFileName();
 
             // Replace {sessionId} placeholder with the generated session ID
             String newLogFileName = logFileNamePattern.replace("{date}", sessionId) + ".log";
             currentLogFile = Path.of(getLogDirectory()).resolve(newLogFileName).toFile();
 
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.out.println("[YAJL] Created new log file: " + currentLogFile.getName());
             }
         } catch (Exception e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.err.println("[YAJL] Failed to start new session log file: " + e.getMessage());
             }
         }
@@ -174,7 +173,7 @@ public class LogFileHandler {
      */
     private void enforceFileLimit() {
         List<File> logFiles = getSortedLogFiles();
-        while (logFiles.size() >= YAJLManager.getInstance().config.getLogFileConfig().getLimitationNumber()) {
+        while (logFiles.size() >= YAJLManager.config.getLogFileConfig().getLimitationNumber()) {
             deleteFile(logFiles.removeFirst());
         }
     }
@@ -207,11 +206,11 @@ public class LogFileHandler {
     private void deleteFile(@NotNull File f) {
         // If no compression is enabled, delete the file
         if (f.delete()) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.out.println("[YAJL] Deleted log file: " + f.getName());
             }
         } else {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.err.println("[YAJL] Failed to delete log file: " + f.getName() + "!");
             }
         }
@@ -231,11 +230,11 @@ public class LogFileHandler {
                 gzipOut.write(buffer, 0, length);
             }
             gzipOut.finish();
-            if (!file.delete() && !YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!file.delete() && !YAJLManager.config.isMuteLogger()) {
                 System.err.println("[YAJL] Failed to delete original file: " + file.getName() + ", after compressing!");
             }
         } catch (IOException e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
+            if (!YAJLManager.config.isMuteLogger()) {
                 System.err.println("[YAJL] Failed to compress log file: " + file.getName());
             }
         }
@@ -248,13 +247,13 @@ public class LogFileHandler {
             long compressedFileSize = compressedFile.length();
 
             // If the compressed file is still too large, delete it
-            if (compressedFileSize > YAJLManager.getInstance().config.getLogFileConfig().getCompressedFileSizeLimit() * 1024L) {
+            if (compressedFileSize > YAJLManager.config.getLogFileConfig().getCompressedFileSizeLimit() * 1024L) {
                 if (compressedFile.delete()) {
-                    if (!YAJLManager.getInstance().config.isMuteLogger()) {
+                    if (!YAJLManager.config.isMuteLogger()) {
                         System.out.println("[YAJL] Deleted compressed log file: " + compressedFile.getName() + " because it exceeds the size limit.");
                     }
                 } else {
-                    if (!YAJLManager.getInstance().config.isMuteLogger()) {
+                    if (!YAJLManager.config.isMuteLogger()) {
                         System.err.println("[YAJL] Failed to delete compressed log file: " + compressedFile.getName() + "!");
                     }
                 }

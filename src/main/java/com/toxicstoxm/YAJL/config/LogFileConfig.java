@@ -1,6 +1,6 @@
 package com.toxicstoxm.YAJL.config;
 
-import com.toxicstoxm.YAJSI.api.settings.YAMLSetting;
+import com.toxicstoxm.YAJSI.YAMLSetting;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,8 +12,6 @@ import org.jetbrains.annotations.NotNull;
 @Builder
 @Getter
 @Setter(onParam_ = @NotNull)
-@NoArgsConstructor
-@AllArgsConstructor
 public class LogFileConfig {
 
     @Builder.Default
