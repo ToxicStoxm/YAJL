@@ -1,7 +1,7 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.old;
 
-import com.toxicstoxm.YAJL.tools.ColorTools;
-import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
+import com.toxicstoxm.YAJL.old.tools.ColorTools;
+import com.toxicstoxm.YAJSI.SettingsManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -54,9 +54,10 @@ public class LogFileHandler {
     }
 
     private @NotNull String getLogDirectory() {
-        String configDir = SettingsManager.getInstance().getConfigDirectory();
+        /*String configDir = SettingsManager.getInstance().getConfigDirectory();
         return configDir + "/"
-                + YAJLManager.getInstance().config.getLogFileConfig().getLogDirectory();
+                + YAJLManager.getInstance().config.getLogFileConfig().getLogDirectory();*/
+        return null;
     }
 
     /**

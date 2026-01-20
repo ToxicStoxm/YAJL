@@ -1,15 +1,12 @@
-package com.toxicstoxm.YAJL.config;
+package com.toxicstoxm.YAJL.old.config;
 
-import com.toxicstoxm.YAJL.LogFilter;
-import com.toxicstoxm.YAJL.level.LogLevel;
-import com.toxicstoxm.YAJL.level.LogLevels;
-import com.toxicstoxm.YAJSI.api.settings.YAMLConfiguration;
-import com.toxicstoxm.YAJSI.api.settings.YAMLSetting;
+import com.toxicstoxm.YAJL.old.level.LogLevel;
+import com.toxicstoxm.YAJL.old.level.LogLevels;
+import com.toxicstoxm.YAJSI.YAMLSetting;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintStream;
-import java.util.List;
 
 /**
  * Main YAJL configuration class.
@@ -19,7 +16,6 @@ import java.util.List;
 @Builder
 @Getter
 @Setter(onParam_ = @NotNull)
-@YAMLConfiguration
 @NoArgsConstructor
 @AllArgsConstructor
 public class YAJLManagerConfig {
@@ -95,11 +91,11 @@ public class YAJLManagerConfig {
 
     @Builder.Default
     @YAMLSetting(name = "Log-Area-Filter")
-    private LogAreaFilterConfig logAreaFilterConfig = LogAreaFilterConfig.builder().build();
+    private com.toxicstoxm.YAJL.old.config.LogAreaFilterConfig logAreaFilterConfig = com.toxicstoxm.YAJL.old.config.LogAreaFilterConfig.builder().build();
 
     @Builder.Default
     @YAMLSetting(name = "Log-File")
-    private LogFileConfig logFileConfig = LogFileConfig.builder().build();
+    private com.toxicstoxm.YAJL.old.config.LogFileConfig logFileConfig = com.toxicstoxm.YAJL.old.config.LogFileConfig.builder().build();
 
     @Builder.Default
     @YAMLSetting.Ignore

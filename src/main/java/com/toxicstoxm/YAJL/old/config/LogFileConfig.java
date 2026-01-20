@@ -1,6 +1,6 @@
-package com.toxicstoxm.YAJL.config;
+package com.toxicstoxm.YAJL.old.config;
 
-import com.toxicstoxm.YAJSI.api.settings.YAMLSetting;
+import com.toxicstoxm.YAJSI.YAMLSetting;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 

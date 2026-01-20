@@ -1,6 +1,6 @@
-package com.toxicstoxm.YAJL.config;
+package com.toxicstoxm.YAJL.old.config;
 
-import com.toxicstoxm.YAJL.level.LogLevel;
+import com.toxicstoxm.YAJL.old.level.LogLevel;
 
 import java.io.PrintStream;
 import java.util.List;
@@ -30,7 +30,7 @@ public interface YAJLManagerSettings {
     YAJLManagerSettings addLogAreaFilterPatterns(String... logAreaFilterPatterns);
 
     // Log File Settings
-    YAJLManagerSettings setLogFileConfig(LogFileConfig logFileConfig);
+    YAJLManagerSettings setLogFileConfig(com.toxicstoxm.YAJL.old.config.LogFileConfig logFileConfig);
 
     // Log File Configuration Methods
     YAJLManagerSettings setLogFileEnabled(boolean enabled);

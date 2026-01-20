@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.placeholders;
+package com.toxicstoxm.YAJL.old.placeholders;
 
 /**
  * A {@code LogMessagePlaceholder} ensures that placeholder values are only computed

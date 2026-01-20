@@ -1,10 +1,10 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.old;
 
-import com.toxicstoxm.YAJL.config.LogFileConfig;
-import com.toxicstoxm.YAJL.config.YAJLManagerConfig;
-import com.toxicstoxm.YAJL.config.YAJLManagerSettings;
-import com.toxicstoxm.YAJL.level.LogLevel;
-import com.toxicstoxm.YAJSI.api.settings.SettingsManager;
+import com.toxicstoxm.YAJL.old.config.LogFileConfig;
+import com.toxicstoxm.YAJL.old.config.YAJLManagerConfig;
+import com.toxicstoxm.YAJL.old.config.YAJLManagerSettings;
+import com.toxicstoxm.YAJL.old.level.LogLevel;
+import com.toxicstoxm.YAJSI.SettingsManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -70,7 +70,7 @@ public class YAJLManager implements YAJLManagerSettings {
      */
     private void init() {
         if (config.isEnableYAMLConfig()) {
-            SettingsManager.getInstance().registerYAMLConfiguration(config);
+            //SettingsManager.getInstance().registerYAMLConfiguration(config);
         }
 
         // Add a shutdown hook to properly close resources before the application exits
@@ -127,7 +127,7 @@ public class YAJLManager implements YAJLManagerSettings {
      */
     public YAJLManagerSettings reloadSettingsFromYAMLConfigFile() {
         if (config.isEnableYAMLConfig()) {
-            SettingsManager.getInstance().reloadFromFile(config);
+            //SettingsManager.getInstance().reloadFromFile(config);
         }
         return this;
     }
@@ -140,7 +140,7 @@ public class YAJLManager implements YAJLManagerSettings {
      */
     public YAJLManagerSettings saveSettingsToYAMLConfigFile() {
         if (config.isEnableYAMLConfig()) {
-            SettingsManager.getInstance().save(config);
+            //SettingsManager.getInstance().save(config);
         }
         return this;
     }
@@ -153,7 +153,7 @@ public class YAJLManager implements YAJLManagerSettings {
      */
     public YAJLManagerSettings restoreDefaultSettings() {
         if (config.isEnableYAMLConfig()) {
-            SettingsManager.getInstance().restoreDefaultsFor(config);
+            //SettingsManager.getInstance().restoreDefaultsFor(config);
         }
         return this;
     }
@@ -176,13 +176,13 @@ public class YAJLManager implements YAJLManagerSettings {
     public YAJLManagerSettings setBridgeYAJSI(boolean bridgeYAJSI) {
         config.setBridgeYAJSI(bridgeYAJSI);
         if (bridgeYAJSI) {
-            SettingsManager.configure()
+            /*SettingsManager.configure()
                     .setEnableLogBuffer(true)
                     .setLogger(Logger.builder()
                                     .logPrefix("YAJSI")
                                     .logArea("YAJSI")
                                     .build()
-                    );
+                    );*/
         }
         return this;
     }
