@@ -12,6 +12,6 @@ public class Logger {
     }
 
     public void log(String message) {
-        YAJLLogger.log("[" + name + "]: " + message);
+        LoggerManager.getSettings().getOutput().println("[" + name + "]: " + message);
     }
 }
