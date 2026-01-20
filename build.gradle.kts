@@ -1,6 +1,6 @@
 plugins {
     id("java-library")
-    id("com.vanniktech.maven.publish") version "0.35.0"
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 group = "com.toxicstoxm"
@@ -11,17 +11,22 @@ repositories {
     mavenLocal()
 }
 
+val lombokVersion = "1.18.42"
+val jetbrainsAnnotationsVersion = "26.0.2-1"
+val yajsiVersion = "3.0.0"
+val junitVersion = "6.0.2"
+
 dependencies {
-    compileOnly("org.projectlombok:lombok:1.18.42")
-    annotationProcessor("org.projectlombok:lombok:1.18.42")
+    compileOnly("org.projectlombok:lombok:$lombokVersion")
+    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
 
-    implementation("org.jetbrains:annotations:26.0.2-1")
-    annotationProcessor("org.jetbrains:annotations:26.0.2-1")
+    implementation("org.jetbrains:annotations:$jetbrainsAnnotationsVersion")
+    annotationProcessor("org.jetbrains:annotations:$jetbrainsAnnotationsVersion")
 
-    implementation("com.toxicstoxm:YAJSI:3.0.0")
+    implementation("com.toxicstoxm:YAJSI:$yajsiVersion")
 
-    testImplementation("org.junit.jupiter:junit-jupiter:6.0.1")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:6.0.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitVersion")
 }
 
 tasks.test {
@@ -32,7 +37,7 @@ tasks.test {
     testLogging {
         events("passed", "failed", "skipped")
         outputs.upToDateWhen {false}
-        showStandardStreams = true  // <-- This ensures System.out output is shown
+        showStandardStreams = true
     }
 }
 
