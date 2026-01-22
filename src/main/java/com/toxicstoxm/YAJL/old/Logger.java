@@ -1,7 +1,7 @@
 package com.toxicstoxm.YAJL.old;
 
-import com.toxicstoxm.YAJL.old.level.LogLevel;
-import com.toxicstoxm.YAJL.old.level.LogLevels;
+import com.toxicstoxm.YAJL.level.LogLevel;
+import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJL.old.placeholders.LogMessagePlaceholder;
 import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
 import com.toxicstoxm.YAJL.old.placeholders.StringPlaceholder;
@@ -595,7 +595,7 @@ public class Logger {
      */
     public void log(@NotNull LogLevel logLevel, String message, Object... objects) {
         if (YAJLManager.getInstance().config.isMuteLogger() ||
-                !YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
+                YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isFiltered(logArea)) {
             return;
         }
 
@@ -659,7 +659,7 @@ public class Logger {
     public void log(@NotNull LogLevel logLevel, String message) {
         // Check if logging is muted or if the log area is not allowed
         if (YAJLManager.getInstance().config.isMuteLogger() ||
-                !YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isLogAreaAllowed(logArea)) {
+                YAJLManager.getInstance().config.getLogAreaFilterConfig().getLogFilter().isFiltered(logArea)) {
             return;
         }
 
