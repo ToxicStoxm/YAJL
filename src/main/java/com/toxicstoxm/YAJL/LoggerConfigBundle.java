@@ -9,7 +9,7 @@ import java.io.File;
 
 public class LoggerConfigBundle extends SettingsBundle {
     public LoggerConfigBundle(File f) {
-        super(new ConfigVersion(1, 0, 0), f, ConfigType.READONLY);
+        super(new ConfigVersion(1, 0, 1), f, ConfigType.READONLY);
     }
 
     @YAMLSetting(name = "Logger")
