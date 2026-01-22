@@ -1,7 +1,7 @@
 package com.toxicstoxm.YAJL.old;
 
 import com.toxicstoxm.YAJL.old.config.YAJLManagerConfig;
-import com.toxicstoxm.YAJL.old.level.LogLevels;
+import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJL.old.placeholders.LogMessagePlaceholder;
 import com.toxicstoxm.YAJL.old.placeholders.StringPlaceholder;
 import org.jetbrains.annotations.NotNull;

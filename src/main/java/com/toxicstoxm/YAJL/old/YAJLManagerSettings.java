@@ -1,6 +1,6 @@
 package com.toxicstoxm.YAJL.old.config;
 
-import com.toxicstoxm.YAJL.old.level.LogLevel;
+import com.toxicstoxm.YAJL.level.LogLevel;
 
 import java.io.PrintStream;
 import java.util.List;

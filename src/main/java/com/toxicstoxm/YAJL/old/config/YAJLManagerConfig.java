@@ -1,7 +1,7 @@
 package com.toxicstoxm.YAJL.old.config;
 
-import com.toxicstoxm.YAJL.old.level.LogLevel;
-import com.toxicstoxm.YAJL.old.level.LogLevels;
+import com.toxicstoxm.YAJL.level.LogLevel;
+import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJSI.YAMLSetting;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
