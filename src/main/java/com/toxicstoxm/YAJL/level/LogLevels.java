@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.old.level;
+package com.toxicstoxm.YAJL.level;
 
 import org.jetbrains.annotations.NotNull;
 
