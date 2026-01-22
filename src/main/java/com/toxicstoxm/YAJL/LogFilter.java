@@ -48,11 +48,12 @@ public class LogFilter {
      * Checks if a given log area is allowed based on filters.
      */
     public boolean isFiltered(String logArea) {
-        if (cache.containsKey(logArea)) {
-            System.out.println("From cache!");
-        }
         cache.computeIfAbsent(logArea, area -> logAreaPatterns.stream().anyMatch(pattern -> pattern.matcher(area).matches()));
-        return cache.get(logArea) != LoggerManager.getSettings().isFilterPatternsAsBlacklist();
+
+        boolean isMatch = cache.get(logArea);
+        boolean isBlacklist = LoggerManager.getSettings().isFilterPatternsAsBlacklist();
+
+        return isMatch == isBlacklist;
     }
 
     protected void clearCache() {

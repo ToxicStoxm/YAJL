@@ -5,9 +5,9 @@ import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJL.old.placeholders.LogMessagePlaceholder;
 import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
 import com.toxicstoxm.YAJL.old.placeholders.StringPlaceholder;
-import com.toxicstoxm.YAJL.old.tools.ColorTools;
-import com.toxicstoxm.YAJL.old.tools.StringTools;
-import com.toxicstoxm.YAJL.old.tools.TraceTools;
+import com.toxicstoxm.YAJL.tools.ColorTools;
+import com.toxicstoxm.YAJL.tools.StringTools;
+import com.toxicstoxm.YAJL.tools.TraceTools;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
@@ -691,7 +691,7 @@ public class Logger {
         args.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
 
         // Process the log message by replacing placeholders with actual values
-        String finalLogMessage = processLogMessage(messageLayout, args) + ColorTools.resetAnsi();
+        String finalLogMessage = processLogMessage(messageLayout, args) + ColorTools.ANSI_RESET;
 
         // Output the formatted log message to the log stream
         YAJLManager.getInstance().config.getLogStream().println(finalLogMessage);

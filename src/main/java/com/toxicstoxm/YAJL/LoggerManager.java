@@ -36,15 +36,16 @@ public class LoggerManager {
             LoggerConfigBundle bundle = new LoggerConfigBundle(configFileLocation);
             SettingsManager.getInstance().registerConfig(bundle);
             this.settings = bundle.loggerConfig;
-            this.settings.setLogFilter(new LogFilter(this.settings.getLogAreaFilterPatterns()));
         } else {
             this.settings = settings;
         }
     }
 
     public static LoggerConfig getSettings() {
-        return getInstance().settings.toBuilder().done();
+        return getInstance().settings;
     }
+
+    public static void resetSettings() {getInstance().setSettings(LoggerConfig.builder().done());}
 
     @Contract(" -> new")
     public static @NotNull LoggerManager.LoggerBlueprint configure() {

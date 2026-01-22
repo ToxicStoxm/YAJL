@@ -18,7 +18,9 @@ import java.util.List;
 public class LoggerConfig {
     @Contract(value = " -> new", pure = true)
     public static @NotNull LoggerConfig getDefaults() {
-        return LoggerConfig.builder().done();
+        LoggerConfig conf = LoggerConfig.builder().done();
+        conf.logFilter = new LogFilter(conf.logAreaFilterPatterns);
+        return conf;
     }
 
     @Builder.Default

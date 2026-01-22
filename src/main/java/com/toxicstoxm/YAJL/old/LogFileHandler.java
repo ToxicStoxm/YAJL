@@ -1,7 +1,6 @@
 package com.toxicstoxm.YAJL.old;
 
-import com.toxicstoxm.YAJL.old.tools.ColorTools;
-import com.toxicstoxm.YAJSI.SettingsManager;
+import com.toxicstoxm.YAJL.tools.ColorTools;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;

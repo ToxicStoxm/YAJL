@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.old.tools;
+package com.toxicstoxm.YAJL.tools;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +24,7 @@ import java.util.Random;
  * <p><b>Note:</b> This class does not support HSL/HSV color spaces.</p>
  */
 public class ColorTools {
+    public static final String ANSI_RESET = "\033[0m";
 
     /**
      * Converts a java.awt.Color object to an ANSI escape code for foreground text color.
@@ -36,13 +37,8 @@ public class ColorTools {
             color = Color.decode("#FFFFFF");
         }
 
-        // Get RGB components
-        int red = color.getRed();
-        int green = color.getGreen();
-        int blue = color.getBlue();
-
         // Return ANSI escape code in RGB format
-        return String.format("\033[38;2;%d;%d;%dm", red, green, blue);
+        return String.format("\033[38;2;%d;%d;%dm", color.getRed(), color.getGreen(), color.getBlue());
     }
 
     /**
@@ -94,16 +90,6 @@ public class ColorTools {
             a += (int) (color.getAlpha() * ratio);
         }
         return new Color(r, g, b, a);
-    }
-
-    /**
-     * Resets ANSI styles to default.
-     *
-     * @return The ANSI escape code to reset colors.
-     */
-    @Contract(pure = true)
-    public static @NotNull String resetAnsi() {
-        return "\033[0m";
     }
 
     /**
