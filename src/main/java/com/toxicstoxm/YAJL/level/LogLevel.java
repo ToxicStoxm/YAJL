@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.old.level;
+package com.toxicstoxm.YAJL.level;
 
 import java.awt.*;
 
@@ -9,19 +9,16 @@ public interface LogLevel {
 
     /**
      * Display name of the LogLevel.
-     * @return
      */
     String getName();
 
     /**
      * Display color of the LogLevel
-     * @return
      */
     Color getColor();
 
     /**
      * Actual level value used for filtering levels.
-     * @return
      */
     int getLevel();
 }
