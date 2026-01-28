@@ -4,7 +4,6 @@ import com.toxicstoxm.YAJL.level.LogLevel;
 import com.toxicstoxm.YAJL.level.LogLevels;
 import com.toxicstoxm.YAJL.old.placeholders.LogMessagePlaceholder;
 import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
-import com.toxicstoxm.YAJL.old.placeholders.StringPlaceholder;
 import com.toxicstoxm.YAJL.tools.ColorTools;
 import com.toxicstoxm.YAJL.tools.StringTools;
 import com.toxicstoxm.YAJL.tools.TraceTools;
@@ -13,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,7 +59,7 @@ public class Logger {
         // Retrieves the current time formatted according to the given format.
         // Default format: "HH:mm:ss"
         placeholderHandlers.put("time", args -> {
-            String format = args.getOrDefault("format", () -> "HH:mm:ss").getData();
+            String format = args.getOrDefault("format", () -> "HH:mm:ss").get();
             return java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern(format));
         });
 
@@ -68,7 +68,7 @@ public class Logger {
         // ==========================
         // Retrieves the log level name from arguments or falls back to the default log level.
         placeholderHandlers.put("level", args ->
-                args.getOrDefault("level", () -> YAJLManager.getInstance().config.getDefaultLogLevel().getName()).getData()
+                args.getOrDefault("level", () -> YAJLManager.getInstance().config.getDefaultLogLevel().getName()).get()
         );
 
         // ==========================
@@ -79,7 +79,7 @@ public class Logger {
             if (YAJLManager.getInstance().config.isEnableColorCoding()) {
                 return args.getOrDefault("levelColor", () ->
                         ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())
-                ).getData();
+                ).get();
             } else {
                 return "";
             }
@@ -90,7 +90,7 @@ public class Logger {
         // ==========================
         // Retrieves the actual log message or defaults to an empty string.
         placeholderHandlers.put("message", args ->
-                args.getOrDefault("message", () -> "").getData()
+                args.getOrDefault("message", () -> "").get()
         );
 
         // ==========================
@@ -98,7 +98,7 @@ public class Logger {
         // ==========================
         // Retrieves the logger prefix or defaults to "YAJL".
         placeholderHandlers.put("prefix", args ->
-                args.getOrDefault("prefix", () -> "YAJL").getData()
+                args.getOrDefault("prefix", () -> "YAJL").get()
         );
 
         // ==========================
@@ -108,7 +108,7 @@ public class Logger {
         // Default color: White (#FFFFFF)
         placeholderHandlers.put("color", args -> {
             if (YAJLManager.getInstance().config.isEnableColorCoding()) {
-                return ColorTools.toAnsi(Color.decode(args.getOrDefault("hex", () -> "#FFFFFF").getData()));
+                return ColorTools.toAnsi(Color.decode(args.getOrDefault("hex", () -> "#FFFFFF").get()));
             } else {
                 return "";
             }
@@ -121,30 +121,30 @@ public class Logger {
         // Supports `class`, `method`, and `line`, or falls back to a full trace format.
         placeholderHandlers.put("trace", args -> {
             StringBuilder finalTrace = new StringBuilder();
-            String separator = Matcher.quoteReplacement(args.getOrDefault("separator", () -> ":").getData());
+            String separator = Matcher.quoteReplacement(args.getOrDefault("separator", () -> ":").get());
 
             if (args.containsKey("class") || args.containsKey("method") || args.containsKey("line")) {
                 for (String key : args.keySet()) {
                     switch (key) {
                         case "class" -> {
                             if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData().replaceAll("\\$", "->"));
+                            finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").get().replaceAll("\\$", "->"));
                         }
                         case "method" -> {
                             if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(args.getOrDefault("traceMethod", () -> "Unknown").getData().replaceAll("\\$", "->"));
+                            finalTrace.append(args.getOrDefault("traceMethod", () -> "Unknown").get().replaceAll("\\$", "->"));
                         }
                         case "line" -> {
                             if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(args.getOrDefault("traceLineNumber", () -> "0").getData().replaceAll("\\$", "->"));
+                            finalTrace.append(args.getOrDefault("traceLineNumber", () -> "0").get().replaceAll("\\$", "->"));
                         }
                     }
                 }
             } else {
                 // Default to full stack trace format: class:method:line
-                finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").getData().replaceAll("\\$", "->"));
-                finalTrace.append(separator).append(args.getOrDefault("traceMethod", () -> "Unknown").getData().replaceAll("\\$", "->"));
-                finalTrace.append(separator).append(args.getOrDefault("traceLineNumber", () -> "0").getData().replaceAll("\\$", "->"));
+                finalTrace.append(args.getOrDefault("traceClass", () -> "Unknown").get().replaceAll("\\$", "->"));
+                finalTrace.append(separator).append(args.getOrDefault("traceMethod", () -> "Unknown").get().replaceAll("\\$", "->"));
+                finalTrace.append(separator).append(args.getOrDefault("traceLineNumber", () -> "0").get().replaceAll("\\$", "->"));
             }
 
             return finalTrace.toString();
@@ -156,7 +156,7 @@ public class Logger {
         // Generates a random ANSI color for the logger prefix if color coding is enabled.
         placeholderHandlers.put("prefixColor", args -> {
             if (YAJLManager.getInstance().config.isEnableColorCoding()) {
-                return ColorTools.toAnsi(ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()));
+                return ColorTools.toAnsi(ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").get()));
             } else {
                 return "";
             }
@@ -170,10 +170,10 @@ public class Logger {
             if (YAJLManager.getInstance().config.isEnableColorCoding()) {
                 return ColorTools.toAnsi(
                         ColorTools.mixColors(
-                                ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").getData()),
+                                ColorTools.randomColor(args.getOrDefault("prefix", () -> "YAJL").get()),
                                 ColorTools.fromAnsi(args.getOrDefault("levelColor", () ->
                                         ColorTools.toAnsi(YAJLManager.getInstance().config.getDefaultLogLevel().getColor())
-                                ).getData())
+                                ).get())
                         )
                 );
             } else {
@@ -680,7 +680,7 @@ public class Logger {
         String messageLayout = YAJLManager.getInstance().config.getLogMessageLayout();
 
         // Prepare placeholder values for the log message
-        Map<String, StringPlaceholder> args = new HashMap<>();
+        Map<String, Supplier<String>> args = new HashMap<>();
         args.put("level", logLevel::getName);
         args.put("levelColor", () -> ColorTools.toAnsi(logLevel.getColor()));
         args.put("message", () -> message);
@@ -715,7 +715,7 @@ public class Logger {
      * @param args   a map of placeholders and their corresponding values or functions to retrieve them
      * @return the processed log message with placeholders replaced
      */
-    public String processLogMessage(String layout, Map<String, StringPlaceholder> args) {
+    public String processLogMessage(String layout, Map<String, Supplier<String>> args) {
         // Regex pattern to match placeholders in the format {key:arg1,arg2,...}
         Pattern pattern = Pattern.compile("\\{(\\w+)(?::([^}]*))?}");
         Matcher matcher = pattern.matcher(layout);
@@ -727,7 +727,7 @@ public class Logger {
             String rawArgs = matcher.group(2); // Extract optional arguments
 
             // Use LinkedHashMap to maintain insertion order of arguments
-            Map<String, StringPlaceholder> argMap = new LinkedHashMap<>(args);
+            Map<String, Supplier<String>> argMap = new LinkedHashMap<>(args);
 
             // Parse and store additional arguments if provided
             if (rawArgs != null) {
