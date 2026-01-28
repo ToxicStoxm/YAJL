@@ -1,26 +1,37 @@
 package com.toxicstoxm.YAJL;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.File;
 import java.io.PrintStream;
+import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LoggerTests {
     private static final Logger logger = LoggerManager.getLogger(LoggerTests.class);
     private static final Logger virtuallogger = LoggerManager.getVirtualLogger("SomeVirutalArea");
 
+    @BeforeEach
+    public void setup() {
+        LoggerManager.resetSettings();
+    }
+
     @Test
-    public void generalTest() throws IOException {
+    public void logFilterTest() {
+        LoggerManager.getInstance(new File("/home/dominik/Downloads/test.yml"));
+
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(bs);
 
-
         LoggerManager.configure()
-                .output(ps)
+                .addOutput(ps)
                 .done();
 
         LoggerManager.configure()
@@ -30,7 +41,6 @@ public class LoggerTests {
 
         logger.info("Match !Blacklist");
         assertFalse(bs.toString().isEmpty());
-        bs.writeTo(System.out);
         bs.reset();
 
         LoggerManager.configure()
@@ -40,7 +50,6 @@ public class LoggerTests {
 
         logger.info("!Match Blacklist");
         assertTrue(bs.toString().isEmpty());
-        bs.writeTo(System.out);
         bs.reset();
 
         LoggerManager.configure()
@@ -50,7 +59,6 @@ public class LoggerTests {
 
         logger.info("Match Blacklist");
         assertTrue(bs.toString().isEmpty());
-        bs.writeTo(System.out);
         bs.reset();
 
         LoggerManager.configure()
@@ -60,35 +68,52 @@ public class LoggerTests {
 
         logger.info("!Match Blacklist");
         assertFalse(bs.toString().isEmpty());
-        bs.writeTo(System.out);
         bs.reset();
+    }
 
-        LoggerManager.resetSettings();
+    @Test
+    public void cachingTest() throws NoSuchFieldException, IllegalAccessException {
+        LogFilter lf = LoggerManager.getSettings().getLogFilter();
+        Field f = lf.getClass().getDeclaredField("cache");
+        f.setAccessible(true);
+        HashMap<String, Boolean> val = (HashMap<String, Boolean>) f.get(lf);
+        Supplier<Boolean> check = () -> val.containsKey("Hello World!");
 
-        long start = System.nanoTime();
-        LoggerManager.getSettings().getLogFilter().isFiltered("Hello World!");
-        long end = System.nanoTime();
-        long diff1 = end - start;
-        System.out.println("No cache: " + diff1);
-
-        start = System.nanoTime();
-        LoggerManager.getSettings().getLogFilter().isFiltered("Hello World!");
-        end = System.nanoTime();
-        long diff2 = end - start;
-        System.out.println("Cache: " + diff2);
+        assertFalse(check.get());
+        lf.isFiltered("Hello World!");
+        assertTrue(check.get() && val.get("Hello World!") && !lf.isFiltered("Hello World!"));
 
         LoggerManager.configure()
                 .addLogFilterPattern("Hello")
                 .done();
 
-        start = System.nanoTime();
-        LoggerManager.getSettings().getLogFilter().isFiltered("Hello World!");
-        end = System.nanoTime();
-        long diff3 = end - start;
-        System.out.println("Cleared cache: " + diff3);
+        assertFalse(check.get());
+        lf.isFiltered("Hello World!");
+        assertTrue(check.get() && val.get("Hello World!") && !lf.isFiltered("Hello World!"));
 
-        assertTrue(diff2 < diff1 && diff2 < diff3);
+        LoggerManager.configure()
+                .logAreaFilterPatterns(List.of("alsdfj"))
+                .done();
 
-        LoggerManager.resetSettings();
+        assertFalse(check.get());
+        lf.isFiltered("Hello World!");
+        assertTrue(check.get() && !val.get("Hello World!") && lf.isFiltered("Hello World!"));
+
+        LoggerManager.configure()
+                .addLogFilterPattern("alsdfj")
+                .done();
+
+        assertTrue(check.get());
+        lf.isFiltered("Hello World!");
+        assertTrue(check.get() && !val.get("Hello World!") && lf.isFiltered("Hello World!"));
+
+        LoggerManager.configure()
+                .logAreaFilterPatterns(List.of("alsdfj"))
+                .done();
+
+        assertTrue(check.get());
+        lf.isFiltered("Hello World!");
+        assertTrue(check.get() && !val.get("Hello World!") && lf.isFiltered("Hello World!"));
+
     }
 }
