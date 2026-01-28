@@ -15,16 +15,33 @@ import java.util.stream.Collectors;
  */
 public class LogFilter {
     private final HashMap<String, Boolean> cache = new HashMap<>();
-    private final List<Pattern> logAreaPatterns;
+    private final List<Pattern> logAreaPatterns = new ArrayList<>();
     private final List<String> logAreaFilters = new ArrayList<>();
+    private int filterHash = 0;
 
     @Builder
     public LogFilter(@NotNull List<String> logAreaFilters) {
+        setFilterPatterns(logAreaFilters);
+    }
+
+    public void setFilterPatterns(@NotNull List<String> logAreaFilters) {
+        int newHash = logAreaFilters.hashCode();
+
+        if (newHash == filterHash && this.logAreaFilters.equals(logAreaFilters)) {
+            return;
+        }
+
+        filterHash = newHash;
+
+        this.logAreaFilters.clear();
+        this.logAreaPatterns.clear();
+        clearCache();
+
         this.logAreaFilters.addAll(logAreaFilters);
-        this.logAreaPatterns = logAreaFilters.stream()
+        this.logAreaPatterns.addAll(logAreaFilters.stream()
                 .map(LogFilter::convertWildcardToRegex)
                 .map(Pattern::compile)
-                .collect(Collectors.toList());
+                .toList());
     }
 
     public void addFilterPattern(String pattern) {
