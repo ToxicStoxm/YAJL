@@ -1,13 +1,12 @@
 package com.toxicstoxm.YAJL;
 
-import com.toxicstoxm.YAJL.old.placeholders.StringPlaceholder;
-
 import java.util.Map;
+import java.util.function.Supplier;
 
 public interface LayoutToken {
     void append(
             StringBuilder out,
-            Map<String, StringPlaceholder> runtimeArgs
+            Map<String, Supplier<String>> logEnvironment
     );
 }
 

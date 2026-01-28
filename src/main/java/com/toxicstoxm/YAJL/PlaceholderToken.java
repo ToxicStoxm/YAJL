@@ -1,10 +1,10 @@
 package com.toxicstoxm.YAJL;
 
 import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
-import com.toxicstoxm.YAJL.old.placeholders.StringPlaceholder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public final class PlaceholderToken implements LayoutToken {
 
@@ -17,7 +17,8 @@ public final class PlaceholderToken implements LayoutToken {
     }
 
     @Override
-    public void append(StringBuilder out, Map<String, StringPlaceholder> runtimeArgs) {
+    public void append(StringBuilder out, Map<String, Supplier<String>> logEnvironment
+    ) {
         PlaceholderHandler handler = Logger.placeholderHandlers.get(key);
 
         if (handler == null) {
@@ -25,13 +26,13 @@ public final class PlaceholderToken implements LayoutToken {
             return;
         }
 
-        Map<String, StringPlaceholder> args;
+        Map<String, Supplier<String>> args;
 
         if (!staticArgs.isEmpty()) {
-            args = new HashMap<>(runtimeArgs);
+            args = new HashMap<>(logEnvironment);
             staticArgs.forEach((k, v) -> args.put(k, () -> v));
         } else {
-            args = runtimeArgs;
+            args = logEnvironment;
         }
 
         out.append(handler.process(args));

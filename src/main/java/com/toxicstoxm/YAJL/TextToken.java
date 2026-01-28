@@ -1,9 +1,9 @@
 package com.toxicstoxm.YAJL;
 
-import com.toxicstoxm.YAJL.old.placeholders.StringPlaceholder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 public final class TextToken implements LayoutToken {
 
@@ -14,7 +14,7 @@ public final class TextToken implements LayoutToken {
     }
 
     @Override
-    public void append(@NotNull StringBuilder out, Map<String, StringPlaceholder> runtimeArgs) {
+    public void append(@NotNull StringBuilder out, Map<String, Supplier<String>> logEnvironment) {
         out.append(text);
     }
 }
