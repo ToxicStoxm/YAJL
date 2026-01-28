@@ -13,7 +13,7 @@ repositories {
 
 val lombokVersion = "1.18.42"
 val jetbrainsAnnotationsVersion = "26.0.2-1"
-val yajsiVersion = "3.0.0"
+val yajsiVersion = "3.0.1"
 val junitVersion = "6.0.2"
 
 dependencies {
