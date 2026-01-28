@@ -8,6 +8,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LoggerManager {
@@ -58,13 +60,14 @@ public class LoggerManager {
 
     public static class LoggerBlueprint extends LoggerConfig.LoggerConfigBuilder {
         private LogFilter logFilter;
+        private final List<PrintStream> outputs = new ArrayList<>();
 
         public LoggerBlueprint() {
             this(LoggerConfig.getDefaults());
         }
 
         public LoggerBlueprint(@NotNull LoggerConfig existingConfig) {
-            output(existingConfig.getOutput());
+            this.outputs.addAll(existingConfig.getOutputs());
             defaultLogLevel(existingConfig.getDefaultLogLevel());
             minimumLogLevel(existingConfig.getMinimumLogLevel());
             enableColorCoding(existingConfig.isEnableColorCoding());
@@ -81,10 +84,16 @@ public class LoggerManager {
             return this;
         }
 
+        public LoggerBlueprint addOutput(PrintStream output) {
+            this.outputs.add(output);
+            return this;
+        }
+
         @Override
         public LoggerConfig done() {
             LoggerConfig conf = super.done();
             conf.setLogFilter(this.logFilter);
+            conf.setOutputs(this.outputs);
             if (instance == null) {
                 instance = new LoggerManager(false, null, conf);
             } else {
@@ -96,13 +105,31 @@ public class LoggerManager {
         @Override
         public LoggerBlueprint logAreaFilterPatterns(List<String> logAreaFilterPatterns) {
             super.logAreaFilterPatterns(logAreaFilterPatterns);
-            this.logFilter = new LogFilter(logAreaFilterPatterns);
+            if (this.logFilter != null) {
+                this.logFilter.setFilterPatterns(logAreaFilterPatterns);
+            }
             return this;
         }
     }
 
     @Setter(AccessLevel.PRIVATE)
     private LoggerConfig settings;
+
+    private static volatile CompiledLayout compiledLayout;
+
+    public static @NotNull CompiledLayout getCompiledLayout() {
+        String layout = getSettings().getLogMessageLayout();
+        CompiledLayout current = compiledLayout;
+
+        if (current == null || !current.layout.equals(layout)) {
+            CompiledLayout fresh =
+                    new CompiledLayout(layout, Logger.parseLayout(layout));
+            compiledLayout = fresh; // volatile write
+            return fresh;
+        }
+
+        return current;
+    }
 
     @Contract("_ -> new")
     public static @NotNull Logger getLogger(Class<?> clazz) {

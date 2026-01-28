@@ -25,7 +25,7 @@ public class LoggerConfig {
 
     @Builder.Default
     @YAMLSetting.Ignore
-    private PrintStream output = System.out;
+    private List<PrintStream> outputs = List.of(System.out);
 
     @Builder.Default
     @YAMLSetting.Ignore
@@ -85,7 +85,7 @@ public class LoggerConfig {
     })
     private String logMessageLayout = "{color:hex=#545454}[{time:format=HH:mm:ss}] [{prefix}]{levelColor} [{level}]: {message}";
 
-       @Builder.Default
+    @Builder.Default
     @YAMLSetting(name = "Blacklist-Matches", comments = {
             "If set to true, the 'Log-Area-Filter-Patterns' list will be treated as a blacklist instead of a whitelist.",
             " - Whitelist mode: Only loggers matching the patterns are enabled.",
