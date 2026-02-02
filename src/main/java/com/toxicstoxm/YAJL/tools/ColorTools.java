@@ -38,33 +38,8 @@ public class ColorTools {
         }
 
         // Return ANSI escape code in RGB format
-        return String.format("\033[38;2;%d;%d;%dm", color.getRed(), color.getGreen(), color.getBlue());
+        return "\033[38;2;" + color.getRed() + ";" + color.getGreen() + ";" + color.getBlue() + "m";
     }
-
-    /**
-     * Converts an ANSI escape code for a foreground text color back to a java.awt.Color object.
-     *
-     * @param ansi The ANSI escape code string.
-     * @return The corresponding Color object, or null if the format is invalid.
-     */
-    public static @Nullable Color fromAnsi(@NotNull String ansi) {
-        if (!ansi.matches("\033\\[38;2;\\d{1,3};\\d{1,3};\\d{1,3}m")) {
-            return null; // Invalid format
-        }
-
-        try {
-            // Extract RGB values
-            String[] parts = ansi.substring(7, ansi.length() - 1).split(";");
-            int red = Integer.parseInt(parts[0]);
-            int green = Integer.parseInt(parts[1]);
-            int blue = Integer.parseInt(parts[2]);
-
-            return new Color(red, green, blue);
-        } catch (Exception e) {
-            return null; // Return null on parsing errors
-        }
-    }
-
 
     /**
      * Generates a random color based on the string input seed.
@@ -90,15 +65,5 @@ public class ColorTools {
             a += (int) (color.getAlpha() * ratio);
         }
         return new Color(r, g, b, a);
-    }
-
-    /**
-     * Strips ANSI color codes from a given string.
-     *
-     * @param input The string potentially containing ANSI color codes.
-     * @return The string with ANSI color codes removed.
-     */
-    public static @NotNull String stripAnsi(@NotNull String input) {
-        return input.replaceAll("\033\\[[;\\d]*m", "");
     }
 }
