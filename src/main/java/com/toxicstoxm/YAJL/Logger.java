@@ -251,6 +251,12 @@ public class Logger {
         for (PrintStream output : LoggerManager.getSettings().getOutputs()) {
             output.println(finalMessage);
         }
+
+        if (LoggerManager.getSettings().isEnableLogFiles()) {
+            final String plainMessage = renderLayout(layout.tokens, logEnv.get(), plain);
+
+            LoggerManager.getLogFileManager().writeLogMessage(plainMessage);
+        }
     }
 
     public static @NotNull String renderLayout(@NotNull List<LayoutToken> tokens, Map<String, Supplier<String>> logEnv, RenderContext context) {

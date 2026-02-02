@@ -106,4 +106,48 @@ public class LoggerConfig {
     @Builder.Default
     @YAMLSetting.Ignore
     private LogFilter logFilter = new LogFilter(List.of("*"));
+
+    @Builder.Default
+    @YAMLSetting(name = "EnableLogFiles", comments = {
+            "If true, logs will be written to files according to the settings below.",
+            "If false, logging will be disabled entirely."
+    })
+    private boolean enableLogFiles = false;
+
+    @Builder.Default
+    @YAMLSetting(name = "Log-File-Limit", comments = {
+            "Defines how many log files are stored.",
+            "When the number of log files exceeds this limit, the older files will be deleted."
+            })
+    private int logFileLimit = 5;
+
+    @Builder.Default
+    @YAMLSetting(name = "Compressed-File-Size-Limit", comments = {
+            "If a logfile still exceeds this limit after compression, it will be deleted.",
+            "This check is NOT done on already existing files!",
+            "Value in Kilobytes"
+    })
+    private int compressedFileSizeLimit = 50;
+
+    @Builder.Default
+    @YAMLSetting(name = "Compress-Old-Log-Files", comments = {
+            "If true, old log files are automatically compressed (.zip or .gz) to save space."
+    })
+    private boolean compressOldLogFiles = true;
+
+    @Builder.Default
+    @YAMLSetting(name = "Log-Directory", comments = {
+            "Specifies the directory where log files will be stored."
+    })
+    private String logDirectory = "~/";
+
+    @Builder.Default
+    @YAMLSetting(name = "Log-File-Name-Pattern", comments = {
+            "Specifies the base name pattern for log files.",
+            "The {date} placeholder is required to generate unique log file names based on the current date.",
+            "If the {date} placeholder is omitted, only two log file names are possible: the specified base name and a compressed version of that base name (only if compression is enabled).",
+            "Omitting the {date} placeholder will effectively suppress the file limit, as there will only ever be these two log files (one uncompressed and one compressed, if compression is enabled),",
+            "which means the file count or size limit may never be reached."
+    })
+    private String logFileNamePattern = "log_{date}";
 }

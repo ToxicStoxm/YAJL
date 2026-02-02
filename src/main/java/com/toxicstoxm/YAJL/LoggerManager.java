@@ -3,6 +3,7 @@ package com.toxicstoxm.YAJL;
 import com.toxicstoxm.YAJSI.SettingsManager;
 import com.toxicstoxm.YAJSI.upgrading.AutoUpgradingBehaviour;
 import lombok.AccessLevel;
+import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,9 @@ public class LoggerManager {
         return instance;
     }
 
+    @Getter
+    private static final LogFileManager logFileManager = new LogFileManager();
+
     private LoggerManager(boolean useConfigFile, File configFileLocation, LoggerConfig settings) {
         if (useConfigFile) {
             SettingsManager.configure()
@@ -39,6 +43,10 @@ public class LoggerManager {
             this.settings = bundle.loggerConfig;
         } else {
             this.settings = settings;
+        }
+
+        if (this.settings.isEnableLogFiles()) {
+            logFileManager.init();
         }
     }
 
@@ -65,6 +73,7 @@ public class LoggerManager {
     public static class LoggerBlueprint extends LoggerConfig.LoggerConfigBuilder {
         private final LogFilter logFilter;
         private final List<PrintStream> outputs = new ArrayList<>();
+        private boolean enableLogFiles;
 
         public LoggerBlueprint() {
             this(LoggerConfig.getDefaults());
@@ -81,6 +90,12 @@ public class LoggerManager {
             filterPatternsAsBlacklist(existingConfig.isFilterPatternsAsBlacklist());
             logAreaFilterPatterns(existingConfig.getLogAreaFilterPatterns());
             this.logFilter = existingConfig.getLogFilter();
+            this.enableLogFiles = existingConfig.isEnableLogFiles();
+            logFileLimit(existingConfig.getLogFileLimit());
+            compressedFileSizeLimit(existingConfig.getCompressedFileSizeLimit());
+            compressOldLogFiles(existingConfig.isCompressOldLogFiles());
+            logDirectory(existingConfig.getLogDirectory());
+            logFileNamePattern(existingConfig.getLogFileNamePattern());
         }
 
         public LoggerBlueprint addLogFilterPattern(String pattern) {
@@ -98,6 +113,16 @@ public class LoggerManager {
             LoggerConfig conf = super.done();
             conf.setLogFilter(this.logFilter);
             conf.setOutputs(this.outputs);
+
+            if (conf.isEnableLogFiles() != this.enableLogFiles) {
+                if (this.enableLogFiles) {
+                    logFileManager.init();
+                } else {
+                    logFileManager.shutdown();
+                }
+            }
+            conf.setEnableLogFiles(this.enableLogFiles);
+
             if (instance == null) {
                 instance = new LoggerManager(false, null, conf);
             } else {
@@ -112,6 +137,12 @@ public class LoggerManager {
             if (this.logFilter != null) {
                 this.logFilter.setFilterPatterns(logAreaFilterPatterns);
             }
+            return this;
+        }
+
+        @Override
+        public LoggerConfig.LoggerConfigBuilder enableLogFiles(boolean enableLogFiles) {
+            this.enableLogFiles = enableLogFiles;
             return this;
         }
     }

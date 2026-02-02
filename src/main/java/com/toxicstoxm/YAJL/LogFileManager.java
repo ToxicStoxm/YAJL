@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.old;
+package com.toxicstoxm.YAJL;
 
 import com.toxicstoxm.YAJL.tools.ColorTools;
 import org.jetbrains.annotations.NotNull;
@@ -15,33 +15,18 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.zip.GZIPOutputStream;
 
-public class LogFileHandler {
-    private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>();
+public class LogFileManager {
+    private final BlockingQueue<String> logQueue = new LinkedBlockingQueue<>(10_000);
     private final ExecutorService logWriter = Executors.newSingleThreadExecutor();
-    private boolean init = false;
+    private BufferedWriter writer;
+    private long dropCount = 0;
 
     private File currentLogFile;
 
-    public LogFileHandler() {
-        if (YAJLManager.getInstance().config.getLogFileConfig().isEnable()) setEnabled(true);
-    }
-
-    /**
-     * Initializes / de-initializes the log manager.
-     * @param enable if {@code true}, enables and initializes the logger, otherwise shutdown and de-initialize the logger framework.
-     */
-    public void setEnabled(boolean enable) {
-        if (enable) {
-            if (init) return;
-            ensureLogDirectory();
-            startNewSessionLogFile();
-            startAsyncWriter();
-            init = true;
-        } else {
-            if (!init) return;
-            shutdown();
-            init = false;
-        }
+    public void init() {
+        ensureLogDirectory();
+        startNewSessionLogFile();
+        startAsyncWriter();
     }
 
     /**
@@ -49,29 +34,22 @@ public class LogFileHandler {
      * @param message The log message to write.
      */
     public void writeLogMessage(String message) {
-        if (YAJLManager.getInstance().config.getLogFileConfig().isEnable()) logQueue.offer(message);
-    }
-
-    private @NotNull String getLogDirectory() {
-        /*String configDir = SettingsManager.getInstance().getConfigDirectory();
-        return configDir + "/"
-                + YAJLManager.getInstance().config.getLogFileConfig().getLogDirectory();*/
-        return null;
+        if (!logQueue.offer(message)) {
+            dropCount++;
+            LoggerManager.internalError("Dropped Messages (" + dropCount + "). I/O can't keep up! You should disable log files!");
+        }
     }
 
     /**
      * Ensures the log directory exists.
      */
     private void ensureLogDirectory() {
-        String logDirectory = getLogDirectory();
+        String logDirectory = LoggerManager.getSettings().getLogDirectory();
         try {
             Path logDirectoryPath = Path.of(logDirectory);
             Files.createDirectories(logDirectoryPath);
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.out.println("[YAJL] Initialized log file handler with directory: " + logDirectory);
-            }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to create log directory: " + logDirectory, e);
+            LoggerManager.internalError("Failed to create log directory: '" + logDirectory + "'");
         }
     }
 
@@ -99,15 +77,10 @@ public class LogFileHandler {
             if (currentLogFile == null || !currentLogFile.exists()) {
                 rotateLogsIfNeeded();
             }
-
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(currentLogFile, true))) {
-                writer.write(message);
-                writer.newLine();
-            }
+            writer.write(message);
+            writer.newLine();
         } catch (IOException e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.err.println("[YAJL] Error writing log message: " + e.getMessage());
-            }
+            LoggerManager.internalError("Failed to write log message to file", e);
         }
     }
 
@@ -117,19 +90,17 @@ public class LogFileHandler {
     private void rotateLogsIfNeeded() {
         try {
             if (currentLogFile == null || !currentLogFile.exists()) {
+                writer.close();
                 startNewSessionLogFile(); // Start a new session log file if none exists
             }
 
-            String limitationMode = YAJLManager.getInstance().config.getLogFileConfig().getLimitationMode();
+            int limitationMode = LoggerManager.getSettings().getLogFileLimit();
 
-            // Rotate the log files if the limitation mode is "files"
-            if (limitationMode.equalsIgnoreCase("files")) {
+            if (limitationMode > -1) {
                 enforceFileLimit();
             }
         } catch (Exception e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.err.println("[YAJL] Failed to rotate logs: " + e.getMessage());
-            }
+            LoggerManager.internalError("Failed to rotate log files", e);
         }
     }
 
@@ -138,26 +109,21 @@ public class LogFileHandler {
      */
     private void startNewSessionLogFile() {
         try {
-            if (YAJLManager.getInstance().config.getLogFileConfig().isCompressOldLogFiles()) {
+            if (LoggerManager.getSettings().isCompressOldLogFiles()) {
                 for (File f : getSortedLogFiles()) {
                     if (!f.getName().endsWith(".gz")) compressLogFile(f);
                 }
             }
 
             String sessionId = generateSessionId();
-            String logFileNamePattern = YAJLManager.getInstance().config.getLogFileConfig().getLogFileName();
+            String logFileNamePattern = LoggerManager.getSettings().getLogFileNamePattern();
 
             // Replace {sessionId} placeholder with the generated session ID
             String newLogFileName = logFileNamePattern.replace("{date}", sessionId) + ".log";
-            currentLogFile = Path.of(getLogDirectory()).resolve(newLogFileName).toFile();
-
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.out.println("[YAJL] Created new log file: " + currentLogFile.getName());
-            }
+            currentLogFile = Path.of(LoggerManager.getSettings().getLogDirectory()).resolve(newLogFileName).toFile();
+            writer = new BufferedWriter(new FileWriter(currentLogFile));
         } catch (Exception e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.err.println("[YAJL] Failed to start new session log file: " + e.getMessage());
-            }
+            LoggerManager.internalError("Failed to start new session log file: '" + currentLogFile + "'", e);
         }
     }
 
@@ -174,7 +140,7 @@ public class LogFileHandler {
      */
     private void enforceFileLimit() {
         List<File> logFiles = getSortedLogFiles();
-        while (logFiles.size() >= YAJLManager.getInstance().config.getLogFileConfig().getLimitationNumber()) {
+        while (logFiles.size() >= LoggerManager.getSettings().getLogFileLimit()) {
             deleteFile(logFiles.removeFirst());
         }
     }
@@ -183,7 +149,7 @@ public class LogFileHandler {
      * Retrieves sorted list of log files.
      */
     private @NotNull List<File> getSortedLogFiles() {
-        String logDirectory = getLogDirectory();
+        String logDirectory = LoggerManager.getSettings().getLogDirectory();
         Path logDirectoryPath = Path.of(logDirectory);
 
         // Retrieve all files in the log directory that end with ".log"
@@ -206,14 +172,8 @@ public class LogFileHandler {
      */
     private void deleteFile(@NotNull File f) {
         // If no compression is enabled, delete the file
-        if (f.delete()) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.out.println("[YAJL] Deleted log file: " + f.getName());
-            }
-        } else {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.err.println("[YAJL] Failed to delete log file: " + f.getName() + "!");
-            }
+        if (!f.delete()) {
+            LoggerManager.internalError("Unable to delete file: '" + f.getAbsolutePath() + "'");
         }
     }
 
@@ -231,13 +191,9 @@ public class LogFileHandler {
                 gzipOut.write(buffer, 0, length);
             }
             gzipOut.finish();
-            if (!file.delete() && !YAJLManager.getInstance().config.isMuteLogger()) {
-                System.err.println("[YAJL] Failed to delete original file: " + file.getName() + ", after compressing!");
-            }
+            deleteFile(file);
         } catch (IOException e) {
-            if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                System.err.println("[YAJL] Failed to compress log file: " + file.getName());
-            }
+            LoggerManager.internalError("Failed to compress log file: '" + file.getAbsolutePath() + "'", e);
         }
 
         // After compression, check if the compressed file exists and get its size
@@ -248,16 +204,8 @@ public class LogFileHandler {
             long compressedFileSize = compressedFile.length();
 
             // If the compressed file is still too large, delete it
-            if (compressedFileSize > YAJLManager.getInstance().config.getLogFileConfig().getCompressedFileSizeLimit() * 1024L) {
-                if (compressedFile.delete()) {
-                    if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                        System.out.println("[YAJL] Deleted compressed log file: " + compressedFile.getName() + " because it exceeds the size limit.");
-                    }
-                } else {
-                    if (!YAJLManager.getInstance().config.isMuteLogger()) {
-                        System.err.println("[YAJL] Failed to delete compressed log file: " + compressedFile.getName() + "!");
-                    }
-                }
+            if (compressedFileSize > LoggerManager.getSettings().getCompressedFileSizeLimit() * 1024L) {
+                deleteFile(compressedFile);
             }
         }
     }
@@ -266,6 +214,11 @@ public class LogFileHandler {
      * Stops the log writer gracefully.
      */
     public void shutdown() {
+        try {
+            writer.close();
+        } catch (IOException e) {
+            LoggerManager.internalError("Failed to close log file writer", e);
+        }
         logWriter.shutdown();
         try {
             if (!logWriter.awaitTermination(3, TimeUnit.SECONDS)) {
