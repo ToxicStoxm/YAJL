@@ -1,5 +1,6 @@
 package com.toxicstoxm.YAJL.old;
 
+import com.toxicstoxm.YAJL.LogFileManager;
 import com.toxicstoxm.YAJL.LogFilter;
 import com.toxicstoxm.YAJL.old.config.LogFileConfig;
 import com.toxicstoxm.YAJL.old.config.YAJLManagerConfig;
@@ -28,7 +29,7 @@ import java.util.List;
 public class YAJLManager implements YAJLManagerSettings {
 
     protected YAJLManagerConfig config;  // Holds the current logging configuration
-    protected LogFileHandler logFileHandler;  // Manages log file operations
+    protected LogFileManager logFileHandler;  // Manages log file operations
 
     private static YAJLManager instance = null; // Singleton instance
 
@@ -95,7 +96,7 @@ public class YAJLManager implements YAJLManagerSettings {
         }));
 
         setLogAreaFilterPatterns(config.getLogAreaFilterConfig().getLogAreaFilterPatterns());
-        logFileHandler = new LogFileHandler();
+        logFileHandler = new LogFileManager();
         setBridgeYAJSI(config.isBridgeYAJSI());
     }
 
@@ -216,7 +217,7 @@ public class YAJLManager implements YAJLManagerSettings {
     @Override
     public YAJLManagerSettings setLogFileEnabled(boolean enabled) {
         config.getLogFileConfig().setEnable(enabled);
-        logFileHandler.setEnabled(enabled);
+        //logFileHandler.setEnabled(enabled);
         return this;
     }
 

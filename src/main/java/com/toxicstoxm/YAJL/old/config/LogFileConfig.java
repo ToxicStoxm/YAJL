@@ -70,5 +70,4 @@ public class LogFileConfig {
             "which means the file count or size limit may never be reached."
     })
     private String logFileName = "log_{date}";
-
 }
