@@ -49,7 +49,7 @@ public class Logger {
      * </p>
      */
     private static Map<String, PlaceholderHandler> placeholderHandlers = new HashMap<>();
-
+    /*
     static {
         // Initialize placeholder handlers
 
@@ -181,6 +181,7 @@ public class Logger {
             }
         });
     }
+     */
 
     /**
      * Creates and returns a new logger instance with the log prefix automatically set
@@ -741,7 +742,7 @@ public class Logger {
             PlaceholderHandler handler = placeholderHandlers.get(key);
 
             // Process placeholder replacement; if no handler exists, leave placeholder unchanged
-            String replacement = handler != null ? handler.process(argMap) : matcher.group(0);
+            /*String replacement = handler != null ? handler.process(argMap) : matcher.group(0);
 
             // Escape special characters to avoid issues with regex replacement
             if (replacement.contains("$") || replacement.contains("\\")) {
@@ -759,10 +760,12 @@ public class Logger {
             } catch (Exception ignored) {
                 // Suppress any exception that may occur during replacement
             }
+             */
         }
 
         // Append any remaining text from the original layout
         matcher.appendTail(result);
+
 
         return result.toString().replace("\\\\", "\\").replace("\\$", "$");
     }
