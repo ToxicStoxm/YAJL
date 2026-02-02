@@ -2,9 +2,6 @@ package com.toxicstoxm.YAJL;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-import java.util.function.Supplier;
-
 public final class TextToken implements LayoutToken {
 
     private final String text;
@@ -14,7 +11,7 @@ public final class TextToken implements LayoutToken {
     }
 
     @Override
-    public void append(@NotNull StringBuilder out, Map<String, Supplier<String>> logEnv, RenderContext context) {
+    public void append(@NotNull StringBuilder out, LogEnvironment env, RenderContext context) {
         out.append(text);
     }
 }

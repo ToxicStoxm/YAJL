@@ -1,7 +1,8 @@
 package com.toxicstoxm.YAJL.old.placeholders;
 
+import com.toxicstoxm.YAJL.LogEnvironment;
+
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * Handles a specific placeholder and returns the corresponding replacement value
@@ -12,9 +13,9 @@ public interface PlaceholderHandler {
     /**
      * Processes the placeholder using the provided arguments and returns its replacement value.
      *
-     * @param logEnvironment a map of additional placeholder properties
+     * @param args a map of additional placeholder properties
      * @return the processed placeholder value as a {@code String}
      */
-    String process(Map<String, Supplier<String>> logEnvironment);
+    String process(LogEnvironment env, Map<String, String> args);
 }
 
