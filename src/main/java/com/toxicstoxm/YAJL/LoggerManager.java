@@ -96,6 +96,8 @@ public class LoggerManager {
             compressOldLogFiles(existingConfig.isCompressOldLogFiles());
             logDirectory(existingConfig.getLogDirectory());
             logFileNamePattern(existingConfig.getLogFileNamePattern());
+            internalLog(existingConfig.isInternalLog());
+            internalLogOutput(existingConfig.getInternalLogOutput());
         }
 
         public LoggerBlueprint addLogFilterPattern(String pattern) {
@@ -176,17 +178,17 @@ public class LoggerManager {
         return new Logger(area);
     }
 
-    private static Logger internal;
-
-    protected static void internalError(String msg) {
-        internalError(msg, null);
+    protected static void internalLog(String msg) {
+        internalLog(msg, null);
     }
 
-    protected static void internalError(String msg, Exception e) {
-        if (internal == null) {
-            internal = new Logger("YAJL");
+    protected static void internalLog(String msg, Exception e) {
+        if (!getSettings().isInternalLog()) return;
+        PrintStream out = getSettings().getInternalLogOutput();
+
+        out.println("[YAJL]: " + msg);
+        if (e != null) {
+            e.printStackTrace(out);
         }
-        internal.error(msg);
-        internal.stacktrace("REPLACE WITH PROPER EXCEPTION TRACE", e);
     }
 }

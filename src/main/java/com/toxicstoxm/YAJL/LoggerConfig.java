@@ -28,6 +28,13 @@ public class LoggerConfig {
     private List<PrintStream> outputs = List.of(System.out);
 
     @Builder.Default
+    private boolean internalLog = true;
+
+    @Builder.Default
+    @YAMLSetting.Ignore
+    private PrintStream internalLogOutput = System.err;
+
+    @Builder.Default
     @YAMLSetting.Ignore
     private LogLevel defaultLogLevel = LogLevels.INFO;
 
