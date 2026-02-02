@@ -3,7 +3,6 @@ package com.toxicstoxm.YAJL;
 import org.jetbrains.annotations.NotNull;
 
 public final class TextToken implements LayoutToken {
-
     private final String text;
 
     public TextToken(String text) {

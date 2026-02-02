@@ -6,7 +6,6 @@ import java.awt.*;
  * YAJL LogLevel. Can be implemented to use your own custom log levels.
  */
 public interface LogLevel {
-
     /**
      * Display name of the LogLevel.
      */

@@ -2,10 +2,10 @@ package com.toxicstoxm.YAJL.old;
 
 import com.toxicstoxm.YAJL.LogFileManager;
 import com.toxicstoxm.YAJL.LogFilter;
+import com.toxicstoxm.YAJL.level.LogLevel;
 import com.toxicstoxm.YAJL.old.config.LogFileConfig;
 import com.toxicstoxm.YAJL.old.config.YAJLManagerConfig;
 import com.toxicstoxm.YAJL.old.config.YAJLManagerSettings;
-import com.toxicstoxm.YAJL.level.LogLevel;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,6 @@ import java.util.List;
  * @author ToxicStoxm
  */
 public class YAJLManager implements YAJLManagerSettings {
-
     protected YAJLManagerConfig config;  // Holds the current logging configuration
     protected LogFileManager logFileHandler;  // Manages log file operations
 

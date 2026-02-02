@@ -2,7 +2,6 @@ package com.toxicstoxm.YAJL.tools;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.util.Random;

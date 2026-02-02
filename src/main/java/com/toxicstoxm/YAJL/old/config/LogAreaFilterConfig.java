@@ -18,7 +18,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LogAreaFilterConfig {
-
     @Builder.Default
     @YAMLSetting(name = "Log-Area-Filter-Patterns-As-Blacklist", comments = {
             "If set to true, the 'Log-Area-Filter-Patterns' list will be treated as a blacklist instead of a whitelist.",

@@ -15,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 @NoArgsConstructor
 @AllArgsConstructor
 public class LogFileConfig {
-
     @Builder.Default
     @YAMLSetting(name = "Enable", comments = {
             "If true, logs will be written to files according to the settings below.",

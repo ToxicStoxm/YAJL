@@ -11,8 +11,7 @@ import org.jetbrains.annotations.Nullable;
  * </p>
  */
 public class TraceTools {
-
-    private static final String LOGGER_PACKAGE = "com.toxicstoxm.YAJL";  // Adjust based on your package
+    private static final String LOGGER_PACKAGE = "com.toxicstoxm.YAJL";
 
     /**
      * Retrieves the first non-logger stack trace element, filtering out internal

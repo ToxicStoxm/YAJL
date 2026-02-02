@@ -9,7 +9,6 @@ import java.util.List;
  * YAJL configuration interface.
  */
 public interface YAJLManagerSettings {
-
     // Log Level Settings
     YAJLManagerSettings setDefaultLogLevel(LogLevel logLevel);
 

@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Log filter which can be used to filter the loggers based on their prefix / area.

@@ -13,7 +13,6 @@ import java.util.*;
  * </p>
  */
 public class StringTools {
-
     /**
      * Computes a string representation of an object, supporting arrays, collections,
      * and maps while detecting circular references.

@@ -5,7 +5,6 @@ import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
 import java.util.Map;
 
 public final class PlaceholderToken implements LayoutToken {
-
     private final String key;
     private final Map<String, String> staticArgs;
 

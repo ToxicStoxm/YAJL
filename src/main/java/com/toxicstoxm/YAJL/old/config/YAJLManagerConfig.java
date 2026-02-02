@@ -19,7 +19,6 @@ import java.io.PrintStream;
 @NoArgsConstructor
 @AllArgsConstructor
 public class YAJLManagerConfig {
-
     @Builder.Default
     @YAMLSetting.Ignore
     private LogLevel defaultLogLevel = LogLevels.INFO;
