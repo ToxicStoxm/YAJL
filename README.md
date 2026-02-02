@@ -1,12 +1,12 @@
 # YAJL (Yet another Java logger)
 [![Build](https://github.com/ToxicStoxm/YAJL/actions/workflows/gradle.yml/badge.svg?branch=main)](https://github.com/ToxicStoxm/YAJL/actions/workflows/gradle.yml)
 
-#### Available at [Maven Central](https://central.sonatype.com/artifact/com.toxicstoxm.YAJL/YAJL)
+#### Available at [Maven Central](https://central.sonatype.com/artifact/com.toxicstoxm/YAJL)
 
 ### Maven
 ```xml
 <dependency>
-    <groupId>com.toxicstoxm.YAJL</groupId>
+    <groupId>com.toxicstoxm</groupId>
     <artifactId>YAJL</artifactId>
     <version>[Latest Release Version]</version>
 </dependency>
@@ -14,5 +14,5 @@
 
 ### Gradle
 ```groovy
-implementation 'com.toxicstoxm.YAJL:YAJL:[Latest Release Version]'
+implementation 'com.toxicstoxm:YAJL:[Latest Release Version]'
 ```
