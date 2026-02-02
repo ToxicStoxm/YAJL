@@ -14,7 +14,7 @@ public final class TextToken implements LayoutToken {
     }
 
     @Override
-    public void append(@NotNull StringBuilder out, Map<String, Supplier<String>> logEnvironment) {
+    public void append(@NotNull StringBuilder out, Map<String, Supplier<String>> logEnv, RenderContext context) {
         out.append(text);
     }
 }

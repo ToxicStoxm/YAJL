@@ -204,18 +204,28 @@ public class Logger {
     public final String logPrefix;
 
     protected Logger(@NotNull Class<?> clazz) {
-        logPrefix = clazz.getSimpleName();
-        logArea = clazz.getName();
+        this(clazz.getSimpleName(), clazz.getName());
     }
 
     protected Logger(@NotNull String area) {
+        this(area, area);
+    }
+
+    private Logger(String area, String prefix) {
         this.logArea = area;
-        this.logPrefix = area;
+        this.logPrefix = prefix;
+
+        logEnv.get().put("trace", () -> TraceTools.getCallerTraceFormatted(true, true, true));
+        logEnv.get().put("traceClass", () -> TraceTools.getCallerTraceFormatted(true, false, false));
+        logEnv.get().put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
+        logEnv.get().put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
     }
 
     public void log(@NotNull String message) {
         log(LoggerManager.getSettings().getDefaultLogLevel(), message);
     }
+
+    private final ThreadLocal<Map<String, Supplier<String>>> logEnv = new ThreadLocal<>();
 
     public void log(@NotNull LogLevel level, @NotNull String message) {
         if (shouldSkipLog(level)) return;
@@ -228,28 +238,26 @@ public class Logger {
         }
 
         CompiledLayout layout = LoggerManager.getCompiledLayout();
-        Map<String, Supplier<String>> logEnvironment = new HashMap<>();
-        logEnvironment.put("level", level::getName);
-        logEnvironment.put("levelColor", () -> ColorTools.toAnsi(level.getColor()));
-        logEnvironment.put("message", () -> message);
-        logEnvironment.put("prefix", () -> logPrefix);
-        logEnvironment.put("trace", () -> TraceTools.getCallerTraceFormatted(true, true, true));
-        logEnvironment.put("traceClass", () -> TraceTools.getCallerTraceFormatted(true, false, false));
-        logEnvironment.put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
-        logEnvironment.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
+        RenderContext colored = new RenderContext(true);
+        RenderContext plain = new RenderContext(false);
 
-        String finalMessage = renderLayout(layout.tokens, logEnvironment) + ColorTools.ANSI_RESET;
+        logEnv.get().put("level", level::getName);
+        logEnv.get().put("levelColor", () -> ColorTools.toAnsi(level.getColor()));
+        logEnv.get().put("message", () -> message);
+        logEnv.get().put("prefix", () -> logPrefix);
+
+        final String finalMessage = renderLayout(layout.tokens, logEnv.get(), colored) + ColorTools.ANSI_RESET;
 
         for (PrintStream output : LoggerManager.getSettings().getOutputs()) {
             output.println(finalMessage);
         }
     }
 
-    public static @NotNull String renderLayout(@NotNull List<LayoutToken> tokens, Map<String, Supplier<String>> logEnvironment) {
+    public static @NotNull String renderLayout(@NotNull List<LayoutToken> tokens, Map<String, Supplier<String>> logEnv, RenderContext context) {
         StringBuilder sb = new StringBuilder();
 
         for (LayoutToken token : tokens) {
-            token.append(sb, logEnvironment);
+            token.append(sb, logEnv, context);
         }
 
         return sb.toString();

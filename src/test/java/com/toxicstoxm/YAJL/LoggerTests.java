@@ -25,16 +25,11 @@ public class LoggerTests {
 
     @Test
     public void logFilterTest() {
-        LoggerManager.getInstance(new File("/home/dominik/Downloads/test.yml"));
-
         ByteArrayOutputStream bs = new ByteArrayOutputStream();
         PrintStream ps = new PrintStream(bs);
 
-        LoggerManager.configure()
+        LoggerManager.configure(new File("/home/dominik/Downloads/test.yml"))
                 .addOutput(ps)
-                .done();
-
-        LoggerManager.configure()
                 .logAreaFilterPatterns(List.of("*"))
                 .filterPatternsAsBlacklist(false)
                 .done();

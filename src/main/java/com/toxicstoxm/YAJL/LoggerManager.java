@@ -14,14 +14,13 @@ import java.util.List;
 
 public class LoggerManager {
     private static LoggerManager instance;
-    public static LoggerManager getInstance(File configFileLocation) {
+    public static void initWithConfigFile(@NotNull File configFileLocation) {
         if (instance == null) {
             instance = new LoggerManager(true, configFileLocation, null);
         }
-        return instance;
     }
 
-    public static LoggerManager getInstance() {
+    private static LoggerManager getInstance() {
         if (instance == null) {
             instance = new LoggerManager(false, null, LoggerConfig.getDefaults());
         }
@@ -47,19 +46,24 @@ public class LoggerManager {
         return getInstance().settings;
     }
 
+    public static @NotNull LoggerBlueprint configure(@NotNull File configFileLocation) {
+        initWithConfigFile(configFileLocation);
+        return configure();
+    }
+
     public static void resetSettings() {getInstance().setSettings(LoggerConfig.builder().done());}
 
     @Contract(" -> new")
-    public static @NotNull LoggerManager.LoggerBlueprint configure() {
+    public static @NotNull LoggerBlueprint configure() {
         if (instance != null) {
-            return new LoggerManager.LoggerBlueprint(getSettings());
+            return new LoggerBlueprint(getSettings());
         }
 
-        return new LoggerManager.LoggerBlueprint();
+        return new LoggerBlueprint();
     }
 
     public static class LoggerBlueprint extends LoggerConfig.LoggerConfigBuilder {
-        private LogFilter logFilter;
+        private final LogFilter logFilter;
         private final List<PrintStream> outputs = new ArrayList<>();
 
         public LoggerBlueprint() {
@@ -139,5 +143,19 @@ public class LoggerManager {
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull Logger getVirtualLogger(String area) {
         return new Logger(area);
+    }
+
+    private static Logger internal;
+
+    protected static void internalError(String msg) {
+        internalError(msg, null);
+    }
+
+    protected static void internalError(String msg, Exception e) {
+        if (internal == null) {
+            internal = new Logger("YAJL");
+        }
+        internal.error(msg);
+        internal.stacktrace("REPLACE WITH PROPER EXCEPTION TRACE", e);
     }
 }

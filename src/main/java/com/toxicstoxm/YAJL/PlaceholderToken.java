@@ -17,7 +17,7 @@ public final class PlaceholderToken implements LayoutToken {
     }
 
     @Override
-    public void append(StringBuilder out, Map<String, Supplier<String>> logEnvironment
+    public void append(StringBuilder out, Map<String, Supplier<String>> logEnv, RenderContext context
     ) {
         PlaceholderHandler handler = Logger.placeholderHandlers.get(key);
 
@@ -29,10 +29,10 @@ public final class PlaceholderToken implements LayoutToken {
         Map<String, Supplier<String>> args;
 
         if (!staticArgs.isEmpty()) {
-            args = new HashMap<>(logEnvironment);
+            args = new HashMap<>(logEnv);
             staticArgs.forEach((k, v) -> args.put(k, () -> v));
         } else {
-            args = logEnvironment;
+            args = logEnv;
         }
 
         out.append(handler.process(args));

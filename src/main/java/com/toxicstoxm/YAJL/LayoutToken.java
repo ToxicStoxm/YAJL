@@ -6,7 +6,8 @@ import java.util.function.Supplier;
 public interface LayoutToken {
     void append(
             StringBuilder out,
-            Map<String, Supplier<String>> logEnvironment
+            Map<String, Supplier<String>> logEnv,
+            RenderContext context
     );
 }
 
