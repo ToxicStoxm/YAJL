@@ -29,6 +29,12 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitVersion")
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
 
