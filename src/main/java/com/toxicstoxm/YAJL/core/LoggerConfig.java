@@ -1,7 +1,7 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.core;
 
-import com.toxicstoxm.YAJL.level.LogLevel;
-import com.toxicstoxm.YAJL.level.LogLevels;
+import com.toxicstoxm.YAJL.core.level.LogLevel;
+import com.toxicstoxm.YAJL.core.level.LogLevels;
 import com.toxicstoxm.YAJSI.YAMLSetting;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,12 +1,12 @@
 package com.toxicstoxm.YAJL.old;
 
-import com.toxicstoxm.YAJL.level.LogLevel;
-import com.toxicstoxm.YAJL.level.LogLevels;
+import com.toxicstoxm.YAJL.core.level.LogLevel;
+import com.toxicstoxm.YAJL.core.level.LogLevels;
 import com.toxicstoxm.YAJL.old.placeholders.LogMessagePlaceholder;
 import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
-import com.toxicstoxm.YAJL.tools.ColorTools;
-import com.toxicstoxm.YAJL.tools.StringTools;
-import com.toxicstoxm.YAJL.tools.TraceTools;
+import com.toxicstoxm.YAJL.core.tools.ColorTools;
+import com.toxicstoxm.YAJL.core.tools.StringTools;
+import com.toxicstoxm.YAJL.core.tools.TraceTools;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
@@ -687,10 +687,10 @@ public class Logger {
         args.put("levelColor", () -> ColorTools.toAnsi(logLevel.getColor()));
         args.put("message", () -> message);
         args.put("prefix", () -> logPrefix);
-        args.put("trace", () -> TraceTools.getCallerTraceFormatted(true, true, true));
+        /*args.put("trace", () -> TraceTools.getCallerTraceFormatted(true, true, true));
         args.put("traceClass", () -> TraceTools.getCallerTraceFormatted(true, false, false));
         args.put("traceMethod", () -> TraceTools.getCallerTraceFormatted(false, true, false));
-        args.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));
+        args.put("traceLineNumber", () -> TraceTools.getCallerTraceFormatted(false, false, true));*/
 
         // Process the log message by replacing placeholders with actual values
         String finalLogMessage = processLogMessage(messageLayout, args) + ColorTools.ANSI_RESET;

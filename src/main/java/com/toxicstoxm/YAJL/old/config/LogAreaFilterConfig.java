@@ -1,6 +1,6 @@
 package com.toxicstoxm.YAJL.old.config;
 
-import com.toxicstoxm.YAJL.LogFilter;
+import com.toxicstoxm.YAJL.core.LogFilter;
 import com.toxicstoxm.YAJSI.YAMLSetting;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;

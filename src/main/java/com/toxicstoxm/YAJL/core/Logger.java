@@ -1,19 +1,19 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.core;
 
-import com.toxicstoxm.YAJL.level.LogLevel;
-import com.toxicstoxm.YAJL.level.LogLevels;
+import com.toxicstoxm.YAJL.core.level.LogLevel;
+import com.toxicstoxm.YAJL.core.level.LogLevels;
+import com.toxicstoxm.YAJL.core.tools.ColorTools;
+import com.toxicstoxm.YAJL.core.tools.TraceTools;
 import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
-import com.toxicstoxm.YAJL.tools.ColorTools;
-import com.toxicstoxm.YAJL.tools.TraceTools;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.awt.*;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +44,7 @@ public class Logger {
         // Default format: "HH:mm:ss"
         placeholderHandlers.put("time", (_, args) -> {
             String format = args.getOrDefault("format", "HH:mm:ss");
-            return java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern(format));
+            return LocalTime.now().format(DateTimeFormatter.ofPattern(format));
         });
 
         // ==========================
@@ -97,34 +97,24 @@ public class Logger {
         // Constructs a stack trace element representation based on the provided arguments.
         // Supports `class`, `method`, and `line`, or falls back to a full trace format.
         placeholderHandlers.put("trace", (env, args) -> {
-            StringBuilder finalTrace = new StringBuilder();
-            String separator = Matcher.quoteReplacement(args.getOrDefault("separator", ":"));
+            final String separator = args.getOrDefault("separator", ":");
 
-            if (args.containsKey("class") || args.containsKey("method") || args.containsKey("line")) {
-                for (String key : args.keySet()) {
-                    switch (key) {
-                        case "class" -> {
-                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(env.traceClass().get().replaceAll("\\$", "->"));
-                        }
-                        case "method" -> {
-                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(env.traceMethod().get().replaceAll("\\$", "->"));
-                        }
-                        case "line" -> {
-                            if (!finalTrace.isEmpty()) finalTrace.append(separator);
-                            finalTrace.append(env.traceLineNumber().get().replaceAll("\\$", "->"));
-                        }
-                    }
+            // Remove "separator" from the ordered keys
+            List<String> fields = null;
+
+            for (String key : args.keySet()) {
+                if (!key.equals("separator")) {
+                    if (fields == null) fields = new ArrayList<>(3);
+                    fields.add(key);
                 }
-            } else {
-                // Default to full stack trace format: class:method:line
-                finalTrace.append(env.traceClass().get().replaceAll("\\$", "->"));
-                finalTrace.append(separator).append(env.traceMethod().get().replaceAll("\\$", "->"));
-                finalTrace.append(separator).append(env.traceLineNumber().get().replaceAll("\\$", "->"));
             }
 
-            return finalTrace.toString();
+            // Default order if nothing specified
+            return TraceTools.formatCallerOrdered(
+                    env.callerInfo().get(),
+                    Objects.requireNonNullElseGet(fields, () -> List.of("class", "method", "line")),
+                    separator
+            );
         });
 
         // ==========================
@@ -157,11 +147,12 @@ public class Logger {
         });
     }
 
-    public static @NotNull @Unmodifiable List<LayoutToken> parseLayout(String layout) {
+    public static @NotNull @Unmodifiable ParsedLayout parseLayout(String layout) {
         Matcher m = PLACEHOLDER_PATTERN.matcher(layout);
         List<LayoutToken> tokens = new ArrayList<>();
 
         int lastEnd = 0;
+        boolean hasColor = false;
 
         while (m.find()) {
             if (m.start() > lastEnd) {
@@ -171,7 +162,9 @@ public class Logger {
             String key = m.group(1);
             String rawArgs = m.group(2);
 
-            Map<String, String> staticArgs = new HashMap<>();
+            if (key.toLowerCase().contains("color")) hasColor = true;
+
+            Map<String, String> staticArgs = new LinkedHashMap<>();
             if (rawArgs != null) {
                 for (String arg : rawArgs.split(",")) {
                     String[] kv = arg.split("=", 2);
@@ -187,7 +180,7 @@ public class Logger {
             tokens.add(new TextToken(layout.substring(lastEnd)));
         }
 
-        return List.copyOf(tokens);
+        return new ParsedLayout(List.copyOf(tokens), hasColor);
     }
 
     public final String logArea;
@@ -225,21 +218,19 @@ public class Logger {
         RenderContext colored = new RenderContext(true);
         RenderContext plain = new RenderContext(false);
 
-        LogEnvironment env = new LogEnvironment(level, message, logPrefix,
-                () -> TraceTools.getCallerTraceFormatted(true, true, true),
-                () -> TraceTools.getCallerTraceFormatted(true, false, false),
-                () -> TraceTools.getCallerTraceFormatted(false, true, false),
-                () -> TraceTools.getCallerTraceFormatted(false, false, true)
-        );
+        LogEnvironment env = new LogEnvironment(level, message, logPrefix, new Lazy<>(TraceTools::getCaller));
 
-        final String finalMessage = renderLayout(layout.tokens, env, colored) + ColorTools.ANSI_RESET;
+        String finalMessage = renderLayout(layout.getTokens(), env, colored);
+        if (layout.isColored()) {
+            finalMessage += ColorTools.ANSI_RESET;
+        }
 
         for (PrintStream output : LoggerManager.getSettings().getOutputs()) {
             output.println(finalMessage);
         }
 
         if (LoggerManager.getSettings().isEnableLogFiles()) {
-            final String plainMessage = renderLayout(layout.tokens, env, plain);
+            final String plainMessage = renderLayout(layout.getTokens(), env, plain);
 
             LoggerManager.getLogFileManager().writeLogMessage(plainMessage);
         }

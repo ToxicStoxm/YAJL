@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.core;
 
 import com.toxicstoxm.YAJSI.SettingsManager;
 import com.toxicstoxm.YAJSI.upgrading.AutoUpgradingBehaviour;
@@ -152,20 +152,25 @@ public class LoggerManager {
     @Setter(AccessLevel.PRIVATE)
     private LoggerConfig settings;
 
-    private static volatile CompiledLayout compiledLayout;
+    private static volatile CachedLayout cached;
 
     public static @NotNull CompiledLayout getCompiledLayout() {
-        String layout = getSettings().getLogMessageLayout();
-        CompiledLayout current = compiledLayout;
+        LayoutCacheKey newKey =
+                new LayoutCacheKey(
+                        getSettings().getLogMessageLayout(),
+                        getSettings().isEnableColorCoding()
+                );
 
-        if (current == null || !current.layout.equals(layout)) {
+        CachedLayout current = cached;
+        if (current == null || !current.key().equals(newKey)) {
+            ParsedLayout parsedLayout = Logger.parseLayout(newKey.layout());
             CompiledLayout fresh =
-                    new CompiledLayout(layout, Logger.parseLayout(layout));
-            compiledLayout = fresh; // volatile write
+                    new CompiledLayout(newKey.layout(), parsedLayout);
+            cached = new CachedLayout(newKey, fresh); // single volatile write
             return fresh;
         }
 
-        return current;
+        return current.layout();
     }
 
     @Contract("_ -> new")

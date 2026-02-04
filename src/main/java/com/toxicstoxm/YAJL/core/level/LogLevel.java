@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.level;
+package com.toxicstoxm.YAJL.core.level;
 
 import java.awt.*;
 

@@ -1,8 +1,8 @@
 package com.toxicstoxm.YAJL.old;
 
-import com.toxicstoxm.YAJL.LogFileManager;
-import com.toxicstoxm.YAJL.LogFilter;
-import com.toxicstoxm.YAJL.level.LogLevel;
+import com.toxicstoxm.YAJL.core.LogFileManager;
+import com.toxicstoxm.YAJL.core.LogFilter;
+import com.toxicstoxm.YAJL.core.level.LogLevel;
 import com.toxicstoxm.YAJL.old.config.LogFileConfig;
 import com.toxicstoxm.YAJL.old.config.YAJLManagerConfig;
 import com.toxicstoxm.YAJL.old.config.YAJLManagerSettings;

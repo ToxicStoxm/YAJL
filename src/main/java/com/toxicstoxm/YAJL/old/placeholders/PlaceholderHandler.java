@@ -1,6 +1,6 @@
 package com.toxicstoxm.YAJL.old.placeholders;
 
-import com.toxicstoxm.YAJL.LogEnvironment;
+import com.toxicstoxm.YAJL.core.LogEnvironment;
 
 import java.util.Map;
 

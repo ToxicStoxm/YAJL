@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL;
+package com.toxicstoxm.YAJL.core;
 
 import com.toxicstoxm.YAJSI.ConfigType;
 import com.toxicstoxm.YAJSI.SettingsBundle;
