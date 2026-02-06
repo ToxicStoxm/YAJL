@@ -6,5 +6,5 @@ public record LogEnvironment(
         LogLevel level,
         String message,
         String prefix,
-        Lazy<CallerInfo> callerInfo
+        CachingSupplier<CallerInfo> callerInfo
 ) {}

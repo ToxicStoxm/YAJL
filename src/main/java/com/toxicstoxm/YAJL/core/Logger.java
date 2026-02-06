@@ -222,7 +222,7 @@ public class Logger {
         RenderContext colored = new RenderContext(true);
         RenderContext plain = new RenderContext(false);
 
-        LogEnvironment env = new LogEnvironment(level, message, logPrefix, new Lazy<>(TraceTools::getCaller));
+        LogEnvironment env = new LogEnvironment(level, message, logPrefix, new CachingSupplier<>(TraceTools::getCaller));
 
         String finalMessage = renderLayout(layout.getTokens(), env, colored);
         if (layout.isColored()) {
@@ -289,8 +289,6 @@ public class Logger {
         return sb.toString();
     }
 
-
-
     public static @NotNull String renderLayout(@NotNull List<LayoutToken> tokens, LogEnvironment env, RenderContext context) {
         StringBuilder sb = new StringBuilder();
 
@@ -349,7 +347,6 @@ public class Logger {
     public void fatal(String message, Object... args) {
         log(LogLevels.FATAL, message, args);
     }
-
 
     public boolean shouldSkipLog(LogLevel level) {
         LoggerConfig settings = LoggerManager.getSettings();

@@ -2,12 +2,12 @@ package com.toxicstoxm.YAJL.core;
 
 import java.util.function.Supplier;
 
-public final class Lazy<T> {
+public final class CachingSupplier<T> implements Supplier<T> {
     private T value;
     private boolean resolved;
     private final Supplier<T> supplier;
 
-    public Lazy(Supplier<T> supplier) {
+    public CachingSupplier(Supplier<T> supplier) {
         this.supplier = supplier;
     }
 
