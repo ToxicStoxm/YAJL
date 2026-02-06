@@ -27,7 +27,7 @@ public final class TraceTools {
         return false;
     }
 
-    public static CallerInfo getCaller() {
+    public static @NotNull CallerInfo getCaller() {
         return WALKER.walk(stream ->
                 stream
                         .filter(f -> !isIgnored(f.getClassName()))
@@ -45,42 +45,8 @@ public final class TraceTools {
                                     f.getMethodName(),
                                     f.getLineNumber()
                             );
-                        })
-                        .orElse(null)
+                        }).orElse(new CallerInfo("Unknown", "Unknown", "Unknown", -1))
         );
-    }
-
-    public static int getCallerLineNumber() {
-        CallerInfo c = getCaller();
-        return c != null ? c.lineNumber() : -1;
-    }
-
-    public static String getCallerMethodName() {
-        CallerInfo c = getCaller();
-        return c != null ? c.methodName() : "Unknown";
-    }
-
-    public static String getCallerClassName() {
-        CallerInfo c = getCaller();
-        return c != null ? c.simpleClassName() : "Unknown";
-    }
-
-    public static @NotNull String formatCaller(CallerInfo c, boolean cls, boolean method, boolean line, String separator) {
-        if (c == null) return "Unknown";
-
-        StringBuilder sb = new StringBuilder(32);
-
-        if (cls) sb.append(c.simpleClassName());
-        if (method) {
-            if (!sb.isEmpty()) sb.append(separator);
-            sb.append(c.methodName());
-        }
-        if (line) {
-            if (!sb.isEmpty()) sb.append(separator);
-            sb.append(c.lineNumber());
-        }
-
-        return sb.toString();
     }
 
     public static @NotNull String formatCallerOrdered(
