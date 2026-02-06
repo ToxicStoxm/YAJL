@@ -289,8 +289,6 @@ public class Logger {
         return sb.toString();
     }
 
-
-
     public static @NotNull String renderLayout(@NotNull List<LayoutToken> tokens, LogEnvironment env, RenderContext context) {
         StringBuilder sb = new StringBuilder();
 
@@ -349,7 +347,6 @@ public class Logger {
     public void fatal(String message, Object... args) {
         log(LogLevels.FATAL, message, args);
     }
-
 
     public boolean shouldSkipLog(LogLevel level) {
         LoggerConfig settings = LoggerManager.getSettings();
