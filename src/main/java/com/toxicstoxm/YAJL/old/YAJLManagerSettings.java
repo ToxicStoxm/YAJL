@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.old.config;
+package com.toxicstoxm.YAJL.old;
 
 import com.toxicstoxm.YAJL.core.level.LogLevel;
 

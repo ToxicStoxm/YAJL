@@ -3,10 +3,9 @@ package com.toxicstoxm.YAJL.old;
 import com.toxicstoxm.YAJL.core.level.LogLevel;
 import com.toxicstoxm.YAJL.core.level.LogLevels;
 import com.toxicstoxm.YAJL.old.placeholders.LogMessagePlaceholder;
-import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
+import com.toxicstoxm.YAJL.core.PlaceholderHandler;
 import com.toxicstoxm.YAJL.core.tools.ColorTools;
 import com.toxicstoxm.YAJL.core.tools.StringTools;
-import com.toxicstoxm.YAJL.core.tools.TraceTools;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
