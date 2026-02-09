@@ -5,7 +5,6 @@ import com.toxicstoxm.YAJL.core.level.LogLevels;
 import com.toxicstoxm.YAJSI.YAMLSetting;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,13 +12,12 @@ import java.io.PrintStream;
 import java.util.List;
 
 @Getter
-@Setter
 @Builder(buildMethodName = "done", toBuilder = true)
 public class LoggerConfig {
     @Contract(value = " -> new", pure = true)
     public static @NotNull LoggerConfig getDefaults() {
         LoggerConfig conf = LoggerConfig.builder().done();
-        conf.logFilter = new LogFilter(conf.logAreaFilterPatterns);
+        conf.logFilter = new LogFilter(List.copyOf(conf.logAreaFilterPatterns), conf.filterPatternsAsBlacklist);
         return conf;
     }
 
@@ -112,7 +110,7 @@ public class LoggerConfig {
 
     @Builder.Default
     @YAMLSetting.Ignore
-    private LogFilter logFilter = new LogFilter(List.of("*"));
+    private LogFilter logFilter = new LogFilter(List.of("*"), false);
 
     @Builder.Default
     @YAMLSetting(name = "EnableLogFiles", comments = {
@@ -146,7 +144,7 @@ public class LoggerConfig {
     @YAMLSetting(name = "Log-Directory", comments = {
             "Specifies the directory where log files will be stored."
     })
-    private String logDirectory = "~/";
+    private String logDirectory = "./";
 
     @Builder.Default
     @YAMLSetting(name = "Log-File-Name-Pattern", comments = {
