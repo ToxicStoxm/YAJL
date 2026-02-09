@@ -38,5 +38,5 @@ public class LogAreaFilterConfig {
 
     @Builder.Default
     @YAMLSetting.Ignore
-    private LogFilter logFilter = new LogFilter(List.of("*"));
+    private LogFilter logFilter = new LogFilter(List.of("*"), false);
 }
