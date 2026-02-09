@@ -10,8 +10,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,50 +50,50 @@ public class LoggerTests {
     }
 
     @Test
-    public void logFilterTest() {
-        ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(bs);
+    void logFilterTest() {
+        try (LogCapture cap = new LogCapture()) {
 
-        LoggerManager.configure(new File("/home/dominik/Downloads/test.yml"))
-                .addOutput(ps)
-                .logAreaFilterPatterns(List.of("*"))
-                .filterPatternsAsBlacklist(false)
-                .done();
+            LoggerManager.configure(new File("/home/dominik/Downloads/test.yml"))
+                    .addOutput(cap.ps)
+                    .logAreaFilterPatterns(List.of("*"))
+                    .filterPatternsAsBlacklist(false)
+                    .done();
 
-        logger.info("Match !Blacklist");
-        assertFalse(bs.toString().isEmpty());
-        bs.reset();
+            logger.info("Match !Blacklist");
+            assertFalse(cap.read().isEmpty());
+            cap.reset();
 
-        LoggerManager.configure()
-                .logAreaFilterPatterns(List.of("abcde"))
-                .filterPatternsAsBlacklist(false)
-                .done();
+            LoggerManager.configure()
+                    .logAreaFilterPatterns(List.of("abcde"))
+                    .filterPatternsAsBlacklist(false)
+                    .done();
 
-        logger.info("!Match Blacklist");
-        assertTrue(bs.toString().isEmpty());
-        bs.reset();
+            logger.info("!Match Blacklist");
+            assertTrue(cap.read().isEmpty());
+            cap.reset();
 
-        LoggerManager.configure()
-                .logAreaFilterPatterns(List.of("*"))
-                .filterPatternsAsBlacklist(true)
-                .done();
+            LoggerManager.configure()
+                    .logAreaFilterPatterns(List.of("*"))
+                    .filterPatternsAsBlacklist(true)
+                    .done();
 
-        logger.info("Match Blacklist");
-        assertTrue(bs.toString().isEmpty());
-        bs.reset();
+            logger.info("Match Blacklist");
+            assertTrue(cap.read().isEmpty());
+            cap.reset();
 
-        LoggerManager.configure()
-                .logAreaFilterPatterns(List.of("abcde"))
-                 .filterPatternsAsBlacklist(true)
-                 .done();
+            LoggerManager.configure()
+                    .logAreaFilterPatterns(List.of("abcde"))
+                    .filterPatternsAsBlacklist(true)
+                    .done();
 
-        logger.info("!Match Blacklist");
-        assertFalse(bs.toString().isEmpty());
-        bs.reset();
+            logger.info("!Match Blacklist");
+            assertFalse(cap.read().isEmpty());
+            cap.reset();
+        }
     }
 
     @Test
-    public void cachingTest() throws NoSuchFieldException, IllegalAccessException {
+    void cachingTest() throws NoSuchFieldException, IllegalAccessException {
         LogFilter lf = LoggerManager.getSettings().getLogFilter();
         Field f = lf.getClass().getDeclaredField("cache");
         f.setAccessible(true);
@@ -139,112 +138,103 @@ public class LoggerTests {
     }
 
     @Test
-    public void layoutWithoutColorsTest() {
-        ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(bs);
+    void layoutWithoutColorsTest() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .enableColorCoding(false)
+                    .logMessageLayout("[{level}] {message}")
+                    .done();
 
-        LoggerManager.configure()
-                .addOutput(ps)
-                .enableColorCoding(false)
-                .logMessageLayout("[{level}] {message}")
-                .done();
+            logger.info("No Color");
 
-        logger.info("No Color");
-
-        assertEquals("[INFO] No Color\n", bs.toString());
+            assertEquals("[INFO] No Color\n", cap.read());
+        }
     }
 
     @Test
-    public void prefixResolutionTest() {
-        ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(bs);
+    void prefixResolutionTest() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .logMessageLayout("{prefix}: {message}")
+                    .done();
 
-        LoggerManager.configure()
-                .addOutput(ps)
-                .logMessageLayout("{prefix}: {message}")
-                .done();
+            logger.info("ClassLogger");
+            virtuallogger.info("VirtualLogger");
 
-        logger.info("ClassLogger");
-        virtuallogger.info("VirtualLogger");
+            String[] lines = cap.read().split("\n");
 
-        String[] lines = bs.toString().split("\n");
-
-        assertEquals("LoggerTests: ClassLogger", lines[0]);
-        assertEquals("SomeVirutalArea: VirtualLogger", lines[1]);
+            assertEquals("LoggerTests: ClassLogger", lines[0]);
+            assertEquals("SomeVirutalArea: VirtualLogger", lines[1]);
+        }
     }
 
     @Test
-    public void traceDefaultFormatTest() {
-        ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(bs);
+    void traceDefaultFormatTest() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .logMessageLayout("{trace}: {message}")
+                    .done();
 
-        LoggerManager.configure()
-                .addOutput(ps)
-                .logMessageLayout("{trace}: {message}")
-                .done();
+            logger.info("TraceTest");
 
-        logger.info("TraceTest");
+            String out = cap.read();
 
-        String out = bs.toString();
-
-        assertTrue(out.contains("LoggerTests"));
-        assertTrue(out.contains("traceDefaultFormatTest"));
-        assertTrue(out.matches(".*:\\d+: TraceTest.*\\n"));
+            assertTrue(out.contains("LoggerTests"));
+            assertTrue(out.contains("traceDefaultFormatTest"));
+            assertTrue(out.matches(".*:\\d+: TraceTest.*\\n"));
+        }
     }
 
     @Test
-    public void traceSelectiveFieldsTest() {
-        ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(bs);
+    void traceSelectiveFieldsTest() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .logMessageLayout("{trace:class,method,separator=->}")
+                    .done();
 
-        LoggerManager.configure()
-                .addOutput(ps)
-                .logMessageLayout("{trace:class,method,separator=->}")
-                .done();
-
-        logger.info("ignored");
-
-        String out = bs.toString();
-
-        assertTrue(out.startsWith("LoggerTests->traceSelectiveFieldsTest"));
+            logger.info("ignored");
+            assertTrue(cap.read().startsWith("LoggerTests->traceSelectiveFieldsTest"));
+        }
     }
 
     @Test
-    public void colorPlaceholderDisabledTest() {
-        ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(bs);
+    void colorPlaceholderDisabledTest() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .logMessageLayout("{color:hex=#FF0000}RED {message}")
+                    .enableColorCoding(false)
+                    .done();
 
-        LoggerManager.configure()
-                .addOutput(ps)
-                .logMessageLayout("{color:hex=#FF0000}RED {message}")
-                .enableColorCoding(false)
-                .done();
+            logger.info("TEXT");
 
-        logger.info("TEXT");
-
-        assertEquals("RED TEXT\033[0m\n", bs.toString());
+            assertEquals("RED TEXT\033[0m\n", cap.read());
+        }
     }
 
     @Test
-    public void layoutCacheInvalidationTest() {
-        ByteArrayOutputStream bs = new ByteArrayOutputStream();
-        PrintStream ps = new PrintStream(bs);
+    void layoutCacheInvalidationTest() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .logMessageLayout("A {message}")
+                    .done();
 
-        LoggerManager.configure()
-                .addOutput(ps)
-                .logMessageLayout("A {message}")
-                .done();
+            logger.info("X");
+            assertEquals("A X\n", cap.read());
+            cap.reset();
 
-        logger.info("X");
-        assertEquals("A X\n", bs.toString());
-        bs.reset();
+            LoggerManager.configure()
+                    .logMessageLayout("B {message}")
+                    .done();
 
-        LoggerManager.configure()
-                .logMessageLayout("B {message}")
-                .done();
-
-        logger.info("Y");
-        assertEquals("B Y\n", bs.toString());
+            logger.info("Y");
+            assertEquals("B Y\n", cap.read());
+        }
     }
 
     @Test
@@ -467,4 +457,52 @@ public class LoggerTests {
         }
     }
 
+    @Test
+    void logArgumentsAreCorrectlyConvertedToString() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .enableColorCoding(false)
+                    .logMessageLayout("{message}")
+                    .done();
+
+            HashMap<String, Integer> testing = new HashMap<>();
+            testing.put("hello", 5);
+            testing.put("sdfgdfg", 3);
+            testing.put("ghdfghsdf", 2234);
+            testing.put("asfhfsdhg", 435);
+            testing.put("asdfa", 23);
+            testing.put("dsf", 4364567);
+
+            logger.info("Hello {}", testing);
+            assertEquals("Hello {asdfa=23, dsf=4364567, asfhfsdhg=435, hello=5, sdfgdfg=3, ghdfghsdf=2234}\n", cap.read());
+            cap.reset();
+
+            Collection<String> test = List.of("4353", "sdfasdijfhjaskdjf", "dsfhgfhfdg");
+            logger.info("-4 {}", test);
+            assertEquals("-4 [4353, sdfasdijfhjaskdjf, dsfhgfhfdg]\n", cap.read());
+            cap.reset();
+
+            long[] testArr = new long[]{4355346,5463457,234574,2345,356723456,3256};
+            logger.info("sdg {} sdf", Arrays.toString(testArr));
+            assertEquals("sdg [4355346, 5463457, 234574, 2345, 356723456, 3256] sdf\n", cap.read());
+        }
+    }
+
+    @Test
+    void suppliersAsArgumentsAreSupported() {
+        try (LogCapture cap = new LogCapture()) {
+            LoggerManager.configure()
+                    .addOutput(cap.ps)
+                    .enableColorCoding(false)
+                    .logMessageLayout("{message}")
+                    .done();
+            logger.info("Hello {}", (Supplier<String>) () -> "testing");
+            assertEquals("Hello testing\n", cap.read());
+            cap.reset();
+
+            logger.info("Hello {}", (Supplier<Object>) () -> List.of("Hello", "dsfgsdf", "djsfsd", "dsfdf"));
+            assertEquals("Hello [Hello, dsfgsdf, djsfsd, dsfdf]\n", cap.read());
+        }
+    }
 }
