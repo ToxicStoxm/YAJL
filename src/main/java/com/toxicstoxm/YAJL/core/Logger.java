@@ -4,203 +4,31 @@ import com.toxicstoxm.YAJL.core.level.LogLevel;
 import com.toxicstoxm.YAJL.core.level.LogLevels;
 import com.toxicstoxm.YAJL.core.tools.ColorTools;
 import com.toxicstoxm.YAJL.core.tools.TraceTools;
-import com.toxicstoxm.YAJL.old.placeholders.PlaceholderHandler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
-import java.awt.*;
 import java.io.PrintStream;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.function.Supplier;
 
 public class Logger {
-    private static final Pattern PLACEHOLDER_PATTERN =
-            Pattern.compile("\\{(\\w+)(?::([^}]*))?}");
+    private final String logArea;
+    private final String logPrefix;
 
-    /**
-     * A map of registered placeholder handlers used to associate placeholder strings with their corresponding replacement values.
-     * <p>
-     * This map is used to manage dynamic placeholders in log messages, where each placeholder string (e.g., "time", "level") is
-     * mapped to a {@link PlaceholderHandler} that defines how to generate or retrieve the replacement for the placeholder.
-     * </p>
-     * <p>
-     * The placeholder handlers are responsible for processing the placeholders and returning the appropriate value based on
-     * the current context (e.g., time, log level, stack trace).
-     * </p>
-     */
-    protected static Map<String, PlaceholderHandler> placeholderHandlers = new HashMap<>();
-
-    static {
-        // Initialize placeholder handlers
-
-        // ==========================
-        // Time Placeholder
-        // ==========================
-        // Retrieves the current time formatted according to the given format.
-        // Default format: "HH:mm:ss"
-        placeholderHandlers.put("time", (_, args) -> {
-            String format = args.getOrDefault("format", "HH:mm:ss");
-            return LocalTime.now().format(DateTimeFormatter.ofPattern(format));
-        });
-
-        // ==========================
-        // Log Level Placeholder
-        // ==========================
-        // Retrieves the log level name from arguments or falls back to the default log level.
-        placeholderHandlers.put("level", (env, _) -> env.level().getName());
-
-        // ==========================
-        // Log Level Color Placeholder
-        // ==========================
-        // Returns ANSI color representation of the log level color if color coding is enabled.
-        placeholderHandlers.put("levelColor", (env, _) -> {
-            if (LoggerManager.getSettings().isEnableColorCoding()) {
-                return ColorTools.toAnsi(env.level().getColor());
-            } else {
-                return "";
-            }
-        });
-
-        // ==========================
-        // Log Message Placeholder
-        // ==========================
-        // Retrieves the actual log message or defaults to an empty string.
-        placeholderHandlers.put("message", (env, _) -> env.message());
-
-        // ==========================
-        // Logger Prefix (Log Area) Placeholder
-        // ==========================
-        // Retrieves the logger prefix or defaults to "YAJL".
-        placeholderHandlers.put("prefix", (env, _) -> env.prefix());
-
-        // ==========================
-        // Hex Color Placeholder
-        // ==========================
-        // Converts a hex color code to its ANSI equivalent if color coding is enabled.
-        // Default color: White (#FFFFFF)
-        placeholderHandlers.put("color", (_, args) -> {
-            String color = args.get("hex");
-            if (LoggerManager.getSettings().isEnableColorCoding() && color != null) {
-                return ColorTools.toAnsi(Color.decode(color));
-            } else {
-                return "";
-            }
-        });
-
-        // ==========================
-        // Stacktrace Placeholder
-        // ==========================
-        // Constructs a stack trace element representation based on the provided arguments.
-        // Supports `class`, `method`, and `line`, or falls back to a full trace format.
-        placeholderHandlers.put("trace", (env, args) -> {
-            final String separator = args.getOrDefault("separator", ":");
-
-            // Remove "separator" from the ordered keys
-            List<String> fields = null;
-
-            for (String key : args.keySet()) {
-                if (!key.equals("separator")) {
-                    if (fields == null) fields = new ArrayList<>(3);
-                    fields.add(key);
-                }
-            }
-
-            // Default order if nothing specified
-            return TraceTools.formatCallerOrdered(
-                    env.callerInfo().get(),
-                    Objects.requireNonNullElseGet(fields, () -> List.of("class", "method", "line")),
-                    separator
-            );
-        });
-
-        // ==========================
-        // Logger Prefix Color Placeholder
-        // ==========================
-        // Generates a random ANSI color for the logger prefix if color coding is enabled.
-        placeholderHandlers.put("prefixColor", (env, _) -> {
-            if (LoggerManager.getSettings().isEnableColorCoding()) {
-                return ColorTools.toAnsi(ColorTools.randomColor(env.prefix()));
-            } else {
-                return "";
-            }
-        });
-
-        // ==========================
-        // Mixed Log Level & Logger Prefix Color Placeholder
-        // ==========================
-        // Mixes the log level color and logger prefix color into a blended ANSI color if color coding is enabled.
-        placeholderHandlers.put("mixLevelAndAreaColor", (env, _) -> {
-            if (LoggerManager.getSettings().isEnableColorCoding()) {
-                return ColorTools.toAnsi(
-                        ColorTools.mixColors(
-                                ColorTools.randomColor(env.prefix()),
-                                env.level().getColor()
-                        )
-                );
-            } else {
-                return "";
-            }
-        });
-    }
-
-    public static @NotNull @Unmodifiable ParsedLayout parseLayout(String layout) {
-        Matcher m = PLACEHOLDER_PATTERN.matcher(layout);
-        List<LayoutToken> tokens = new ArrayList<>();
-
-        int lastEnd = 0;
-        boolean hasColor = false;
-
-        while (m.find()) {
-            if (m.start() > lastEnd) {
-                tokens.add(new TextToken(layout.substring(lastEnd, m.start())));
-            }
-
-            String key = m.group(1);
-            String rawArgs = m.group(2);
-
-            if (key.toLowerCase().contains("color")) hasColor = true;
-
-            Map<String, String> staticArgs = new LinkedHashMap<>();
-            if (rawArgs != null) {
-                for (String arg : rawArgs.split(",")) {
-                    String[] kv = arg.split("=", 2);
-                    staticArgs.put(kv[0], kv.length > 1 ? kv[1] : "");
-                }
-            }
-
-            tokens.add(new PlaceholderToken(key, staticArgs));
-            lastEnd = m.end();
-        }
-
-        if (lastEnd < layout.length()) {
-            tokens.add(new TextToken(layout.substring(lastEnd)));
-        }
-
-        return new ParsedLayout(List.copyOf(tokens), hasColor);
-    }
-
-    public final String logArea;
-    public final String logPrefix;
-
-    protected Logger(@NotNull Class<?> clazz) {
-        this(clazz.getName(), clazz.getSimpleName());
-    }
-
-    protected Logger(@NotNull String area) {
-        this(area, area);
-    }
-
-    private Logger(String area, String prefix) {
+    protected Logger(String area, String prefix) {
         this.logArea = area;
         this.logPrefix = prefix;
     }
 
     public void log(@NotNull String message, Object... args) {
         log(LoggerManager.getSettings().getDefaultLogLevel(), message, args);
+    }
+
+    public boolean shouldSkipLog(LogLevel level) {
+        LoggerConfig settings = LoggerManager.getSettings();
+
+        return settings.isMuteLogger() ||
+                settings.getLogFilter().isFiltered(logArea) ||
+                settings.getMinimumLogLevel() < level.getLevel();
     }
 
     public void log(@NotNull LogLevel level, @NotNull String message, Object... args) {
@@ -236,7 +64,7 @@ public class Logger {
         if (LoggerManager.getSettings().isEnableLogFiles()) {
             final String plainMessage = renderLayout(layout.getTokens(), env, plain);
 
-            LoggerManager.getLogFileManager().writeLogMessage(plainMessage);
+            LoggerManager.writeLogFile(plainMessage);
         }
     }
 
@@ -273,6 +101,9 @@ public class Logger {
             if (c == '{' && i + 1 < len && message.charAt(i + 1) == '}') {
                 if (argIndex < args.length) {
                     Object arg = args[argIndex++];
+                    if (arg instanceof Supplier supplier) {
+                        arg = supplier.get();
+                    }
                     sb.append(arg == null ? "null" : arg);
                 } else {
                     sb.append("{}");
@@ -346,13 +177,5 @@ public class Logger {
     }
     public void fatal(String message, Object... args) {
         log(LogLevels.FATAL, message, args);
-    }
-
-    public boolean shouldSkipLog(LogLevel level) {
-        LoggerConfig settings = LoggerManager.getSettings();
-
-        return settings.isMuteLogger() ||
-                settings.getLogFilter().isFiltered(logArea) ||
-                settings.getMinimumLogLevel() < level.getLevel();
     }
 }
