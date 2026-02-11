@@ -1,6 +1,6 @@
 plugins {
     id("java-library")
-    id("com.vanniktech.maven.publish") version "0.36.0"
+    alias(libs.plugins.vanniktech.maven.publish)
 }
 
 group = "com.toxicstoxm"
@@ -11,22 +11,17 @@ repositories {
     mavenLocal()
 }
 
-val lombokVersion = "1.18.42"
-val jetbrainsAnnotationsVersion = "26.0.2-1"
-val yajsiVersion = "3.0.1"
-val junitVersion = "6.0.2"
-
 dependencies {
-    compileOnly("org.projectlombok:lombok:$lombokVersion")
-    annotationProcessor("org.projectlombok:lombok:$lombokVersion")
+    compileOnly(libs.lombok)
+    annotationProcessor(libs.lombok)
 
-    implementation("org.jetbrains:annotations:$jetbrainsAnnotationsVersion")
-    annotationProcessor("org.jetbrains:annotations:$jetbrainsAnnotationsVersion")
+    implementation(libs.jetbrains.annotations)
+    annotationProcessor(libs.jetbrains.annotations)
 
-    implementation("com.toxicstoxm:YAJSI:$yajsiVersion")
+    implementation(libs.yajsi)
 
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitVersion")
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
 }
 
 java {
