@@ -1,5 +1,7 @@
-package com.toxicstoxm.YAJL.core;
+package com.toxicstoxm.YAJL.layout;
 
+import com.toxicstoxm.YAJL.core.LogEnvironment;
+import com.toxicstoxm.YAJL.core.RenderContext;
 import org.jetbrains.annotations.NotNull;
 
 public final class TextToken implements LayoutToken {

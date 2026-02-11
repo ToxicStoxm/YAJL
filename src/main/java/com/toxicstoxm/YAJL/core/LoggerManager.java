@@ -1,5 +1,7 @@
 package com.toxicstoxm.YAJL.core;
 
+import com.toxicstoxm.YAJL.io.LogFileManager;
+import com.toxicstoxm.YAJL.layout.*;
 import com.toxicstoxm.YAJSI.SettingsManager;
 import com.toxicstoxm.YAJSI.upgrading.AutoUpgradingBehaviour;
 import lombok.AccessLevel;
@@ -10,10 +12,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

@@ -1,17 +1,23 @@
-package com.toxicstoxm.YAJL.core.tools;
+package com.toxicstoxm.YAJL.util.tools;
 
-import com.toxicstoxm.YAJL.core.CallerInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.StackWalker.Option;
 import java.util.Set;
 
 public final class TraceTools {
+    public record CallerInfo(
+            String className,
+            String simpleClassName,
+            String methodName,
+            int lineNumber
+    ) {}
+
     private static final StackWalker WALKER =
             StackWalker.getInstance(Set.of(Option.RETAIN_CLASS_REFERENCE));
 
     private static final String[] IGNORED_PREFIXES = {
-            "com.toxicstoxm.YAJL.core",
+            "com.toxicstoxm.YAJL",
             "java.",
             "sun.",
             "jdk.",
@@ -20,8 +26,12 @@ public final class TraceTools {
             "org.opentest4j."
     };
 
+    public static String[] ignoredPrefixes() {
+        return IGNORED_PREFIXES;
+    }
+
     private static boolean isIgnored(String className) {
-        for (String prefix : IGNORED_PREFIXES) {
+        for (String prefix : ignoredPrefixes()) {
             if (className.startsWith(prefix)) return true;
         }
         return false;

@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.core;
+package com.toxicstoxm.YAJL.layout;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -11,7 +11,7 @@ public final class CompiledLayout {
     private final String baseLayout;
     private final ParsedLayout parsedLayout;
 
-    CompiledLayout(String baseLayout, ParsedLayout parsedLayout) {
+    public CompiledLayout(String baseLayout, ParsedLayout parsedLayout) {
         this.baseLayout = baseLayout;
         this.parsedLayout = parsedLayout;
     }

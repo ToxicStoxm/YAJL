@@ -1,4 +1,4 @@
-package com.toxicstoxm.YAJL.core.tools;
+package com.toxicstoxm.YAJL.util.tools;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +22,7 @@ import java.util.Random;
  *
  * <p><b>Note:</b> This class does not support HSL/HSV color spaces.</p>
  */
-public class ColorTools {
+public final class ColorTools {
     public static final String ANSI_RESET = "\033[0m";
 
     /**

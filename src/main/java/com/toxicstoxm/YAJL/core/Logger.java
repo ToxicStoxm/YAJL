@@ -2,8 +2,11 @@ package com.toxicstoxm.YAJL.core;
 
 import com.toxicstoxm.YAJL.core.level.LogLevel;
 import com.toxicstoxm.YAJL.core.level.LogLevels;
-import com.toxicstoxm.YAJL.core.tools.ColorTools;
-import com.toxicstoxm.YAJL.core.tools.TraceTools;
+import com.toxicstoxm.YAJL.layout.CompiledLayout;
+import com.toxicstoxm.YAJL.layout.LayoutToken;
+import com.toxicstoxm.YAJL.util.CachingSupplier;
+import com.toxicstoxm.YAJL.util.tools.ColorTools;
+import com.toxicstoxm.YAJL.util.tools.TraceTools;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintStream;
