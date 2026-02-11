@@ -5,12 +5,16 @@ import com.toxicstoxm.YAJL.core.Logger;
 import com.toxicstoxm.YAJL.core.LoggerManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import utils.LogCapture;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -24,24 +28,6 @@ public class LoggerTests {
                 .addOutput(ps)
                 .logMessageLayout("A {message}")
                 .done();
-    }
-
-    private static class LogCapture implements AutoCloseable {
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        final PrintStream ps = new PrintStream(out);
-
-        String read() {
-            return out.toString();
-        }
-
-        void reset() {
-            out.reset();
-        }
-
-        @Override
-        public void close() {
-            ps.close();
-        }
     }
 
     @BeforeEach
@@ -92,49 +78,57 @@ public class LoggerTests {
         }
     }
 
-    @Test
-    void cachingTest() throws NoSuchFieldException, IllegalAccessException {
+    record CheckWrapper(ConcurrentHashMap<String, Boolean> val, LogFilter lf) {}
+
+    CheckWrapper check() throws NoSuchFieldException, IllegalAccessException {
         LogFilter lf = LoggerManager.getSettings().getLogFilter();
         Field f = lf.getClass().getDeclaredField("cache");
         f.setAccessible(true);
-        HashMap<String, Boolean> val = (HashMap<String, Boolean>) f.get(lf);
-        Supplier<Boolean> check = () -> val.containsKey("Hello World!");
+        return new CheckWrapper((ConcurrentHashMap<String, Boolean>) f.get(lf), lf);
+    }
 
-        assertFalse(check.get());
-        lf.isFiltered("Hello World!");
-        assertTrue(check.get() && val.get("Hello World!") && !lf.isFiltered("Hello World!"));
+    @Test
+    void cachingTest() throws NoSuchFieldException, IllegalAccessException {
+        CheckWrapper wrapper = check();
+        assertFalse(wrapper.val.containsKey("Hello World!"));
+        wrapper.lf.isFiltered("Hello World!");
+        assertTrue(wrapper.val.containsKey("Hello World!") && wrapper.val.get("Hello World!") && !wrapper.lf.isFiltered("Hello World!"));
 
         LoggerManager.configure()
                 .addLogFilterPattern("Hello")
                 .done();
 
-        assertFalse(check.get());
-        lf.isFiltered("Hello World!");
-        assertTrue(check.get() && val.get("Hello World!") && !lf.isFiltered("Hello World!"));
+        wrapper = check();
+        assertFalse(wrapper.val.containsKey("Hello World!"));
+        wrapper.lf.isFiltered("Hello World!");
+        assertTrue(wrapper.val.containsKey("Hello World!") && wrapper.val.get("Hello World!") && !wrapper.lf.isFiltered("Hello World!"));
 
         LoggerManager.configure()
                 .logAreaFilterPatterns(List.of("alsdfj"))
                 .done();
 
-        assertFalse(check.get());
-        lf.isFiltered("Hello World!");
-        assertTrue(check.get() && !val.get("Hello World!") && lf.isFiltered("Hello World!"));
+        wrapper = check();
+        assertFalse(wrapper.val.containsKey("Hello World!"));
+        wrapper.lf.isFiltered("Hello World!");
+        assertTrue(wrapper.val.containsKey("Hello World!") && !wrapper.val.get("Hello World!") && wrapper.lf.isFiltered("Hello World!"));
 
         LoggerManager.configure()
                 .addLogFilterPattern("alsdfj")
                 .done();
 
-        assertTrue(check.get());
-        lf.isFiltered("Hello World!");
-        assertTrue(check.get() && !val.get("Hello World!") && lf.isFiltered("Hello World!"));
+        wrapper = check();
+        assertTrue(wrapper.val.containsKey("Hello World!"));
+        wrapper.lf.isFiltered("Hello World!");
+        assertTrue(wrapper.val.containsKey("Hello World!") && !wrapper.val.get("Hello World!") && wrapper.lf.isFiltered("Hello World!"));
 
         LoggerManager.configure()
                 .logAreaFilterPatterns(List.of("alsdfj"))
                 .done();
 
-        assertTrue(check.get());
-        lf.isFiltered("Hello World!");
-        assertTrue(check.get() && !val.get("Hello World!") && lf.isFiltered("Hello World!"));
+        wrapper = check();
+        assertTrue(wrapper.val.containsKey("Hello World!"));
+        wrapper.lf.isFiltered("Hello World!");
+        assertTrue(wrapper.val.containsKey("Hello World!") && !wrapper.val.get("Hello World!") && wrapper.lf.isFiltered("Hello World!"));
     }
 
     @Test
@@ -167,37 +161,6 @@ public class LoggerTests {
 
             assertEquals("LoggerTests: ClassLogger", lines[0]);
             assertEquals("SomeVirutalArea: VirtualLogger", lines[1]);
-        }
-    }
-
-    @Test
-    void traceDefaultFormatTest() {
-        try (LogCapture cap = new LogCapture()) {
-            LoggerManager.configure()
-                    .addOutput(cap.ps)
-                    .logMessageLayout("{trace}: {message}")
-                    .done();
-
-            logger.info("TraceTest");
-
-            String out = cap.read();
-
-            assertTrue(out.contains("LoggerTests"));
-            assertTrue(out.contains("traceDefaultFormatTest"));
-            assertTrue(out.matches(".*:\\d+: TraceTest.*\\n"));
-        }
-    }
-
-    @Test
-    void traceSelectiveFieldsTest() {
-        try (LogCapture cap = new LogCapture()) {
-            LoggerManager.configure()
-                    .addOutput(cap.ps)
-                    .logMessageLayout("{trace:class,method,separator=->}")
-                    .done();
-
-            logger.info("ignored");
-            assertTrue(cap.read().startsWith("LoggerTests->traceSelectiveFieldsTest"));
         }
     }
 

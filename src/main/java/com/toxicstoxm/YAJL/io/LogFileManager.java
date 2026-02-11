@@ -1,5 +1,6 @@
 package com.toxicstoxm.YAJL.io;
 
+import com.toxicstoxm.YAJL.core.LoggerManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
 
@@ -39,6 +41,8 @@ public final class LogFileManager {
     private final AtomicLong dropCount = new AtomicLong();
     private int pendingWrites = 0;
 
+    private final AtomicInteger compressing = new AtomicInteger(0);
+
     public void init() {
         synchronized (lifecycleLock) {
             if (state == State.RUNNING || state == State.STARTING) return;
@@ -58,7 +62,7 @@ public final class LogFileManager {
                 scheduleCompressionForOldFiles();
             }
 
-            enforceFileLimit();
+            scheduleEnforceFileLimit();
             startAsyncWriter();
         }
     }
@@ -211,6 +215,7 @@ public final class LogFileManager {
         List<File> files = getSortedLogFiles();
 
         for (File f : files) {
+            if (f.toString().endsWith(".gz")) continue;
             File gz = new File(f.getPath() + ".gz");
             File tmp = new File(f.getPath() + ".compressing");
 
@@ -232,6 +237,7 @@ public final class LogFileManager {
             return;
         }
 
+        compressing.incrementAndGet();
         exec.execute(() -> compressLogFile(tmp, gz));
     }
 
@@ -251,6 +257,10 @@ public final class LogFileManager {
         } catch (IOException e) {
             LoggerManager.internalLog("Compression failed for " + tmp, e);
             tmp.renameTo(new File(tmp.getPath().replace(".compressing", "")));
+        } finally {
+            if (compressing.decrementAndGet() == 0 && state == State.RUNNING) {
+                enforceFileLimit();
+            }
         }
     }
 
@@ -258,6 +268,14 @@ public final class LogFileManager {
         return LocalDateTime.now()
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss-SSS"));
     }
+
+    private void scheduleEnforceFileLimit() {
+        ExecutorService exec = maintenanceExecutor;
+        if (exec == null || state != State.RUNNING) return;
+
+        exec.execute(this::enforceFileLimit);
+    }
+
 
     private void enforceFileLimit() {
         int limit = LoggerManager.getSettings().getLogFileLimit();
@@ -267,8 +285,8 @@ public final class LogFileManager {
         List<File> files = getSortedLogFiles();
 
         // Delete oldest files until we're under the limit
-        while (files.size() > limit) {
-            File oldest = files.remove(0);
+        while (files.size() >= limit) {
+            File oldest = files.removeFirst();
             deleteFile(oldest);
         }
     }

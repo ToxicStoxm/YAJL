@@ -2,10 +2,9 @@ package com.toxicstoxm.YAJL.old;
 
 import com.toxicstoxm.YAJL.core.level.LogLevel;
 import com.toxicstoxm.YAJL.core.level.LogLevels;
+import com.toxicstoxm.YAJL.util.tools.ColorTools;
 import com.toxicstoxm.YAJL.old.placeholders.LogMessagePlaceholder;
-import com.toxicstoxm.YAJL.core.PlaceholderHandler;
-import com.toxicstoxm.YAJL.core.tools.ColorTools;
-import com.toxicstoxm.YAJL.core.tools.StringTools;
+import com.toxicstoxm.YAJL.layout.PlaceholderHandler;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 
@@ -308,7 +307,6 @@ public class Logger {
 
     /**
      * Logs any Object with VERBOSE level.
-     * @implNote uses {@link StringTools#computeToString(Object)} to serialize objects
      * @param object the exception to log
      */
     public void debug(Object object) {
@@ -629,13 +627,13 @@ public class Logger {
                     // Replace first placeholder with the computed string representation of the object
                     message = message.replaceFirst(
                             getPlaceholderRegex(),
-                            o == null ? "null" : Matcher.quoteReplacement(StringTools.computeToString(o))
+                            o == null ? "null" : Matcher.quoteReplacement(""/*StringUtils.computeToString(o)*/)
                     );
                 } else {
                     // Replace first placeholder with the computed string representation of a regular object
                     message = message.replaceFirst(
                             getPlaceholderRegex(),
-                            Matcher.quoteReplacement(StringTools.computeToString(object))
+                            Matcher.quoteReplacement(""/*StringUtils.computeToString(object)*/)
                     );
                 }
             }

@@ -45,7 +45,6 @@ public class LoggerManager {
     }
 
     private LoggerManager(boolean useConfigFile, File configFileLocation, LoggerConfig settings) {
-        System.out.println("FDUCK");
         if (useConfigFile) {
             SettingsManager.configure()
                     .addSupplier(LoggerConfig.class, LoggerConfig::getDefaults)
@@ -54,7 +53,7 @@ public class LoggerManager {
                     .done();
             LoggerConfigBundle bundle = new LoggerConfigBundle(configFileLocation);
             SettingsManager.getInstance().registerConfig(bundle);
-            this.settings = bundle.loggerConfig;
+            this.settings = bundle.getLoggerConfig();
         } else {
             this.settings = settings;
         }
@@ -88,12 +87,11 @@ public class LoggerManager {
 
     public static class LoggerBlueprint extends LoggerConfig.LoggerConfigBuilder {
         private final List<PrintStream> outputs = new ArrayList<>();
-        private final List<String> logAreaFilterPatterns = new ArrayList<>();
+        private List<String> logAreaFilterPatterns = new ArrayList<>();
         private boolean logFilterChanges = false;
         private boolean filterPatternsAsBlacklist;
 
         public LoggerBlueprint(@NotNull LoggerConfig existingConfig) {
-            System.out.println("FFF");
             this.outputs.addAll(existingConfig.getOutputs());
             this.logAreaFilterPatterns.addAll(existingConfig.getLogAreaFilterPatterns());
             defaultLogLevel(existingConfig.getDefaultLogLevel());
@@ -116,8 +114,10 @@ public class LoggerManager {
         }
 
         public LoggerBlueprint addLogFilterPattern(String pattern) {
-            this.logAreaFilterPatterns.add(pattern);
-            this.logFilterChanges = true;
+            if (!this.logAreaFilterPatterns.contains(pattern)) {
+                this.logAreaFilterPatterns.add(pattern);
+                this.logFilterChanges = true;
+            }
             return this;
         }
 
@@ -154,8 +154,11 @@ public class LoggerManager {
 
         @Override
         public LoggerConfig.LoggerConfigBuilder logAreaFilterPatterns(List<String> logAreaFilterPatterns) {
-            this.logFilterChanges = true;
-            return super.logAreaFilterPatterns(logAreaFilterPatterns);
+            if (!new HashSet<>(this.logAreaFilterPatterns).containsAll(logAreaFilterPatterns)) {
+                this.logFilterChanges = true;
+                this.logAreaFilterPatterns = new ArrayList<>(logAreaFilterPatterns);
+            }
+            return this;
         }
 
         @Override
@@ -239,11 +242,11 @@ public class LoggerManager {
         return new Logger(area, area);
     }
 
-    protected static void internalLog(String msg) {
+    public static void internalLog(String msg) {
         internalLog(msg, null);
     }
 
-    protected static void internalLog(String msg, Exception e) {
+    public static void internalLog(String msg, Exception e) {
         if (!getSettings().isInternalLog()) return;
         PrintStream out = getSettings().getInternalLogOutput();
 

@@ -2,63 +2,45 @@ package com.toxicstoxm.YAJL;
 
 import com.toxicstoxm.YAJL.core.Logger;
 import com.toxicstoxm.YAJL.core.LoggerManager;
-import org.junit.jupiter.api.Test;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.*;
 
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.Comparator;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 public class LogFileManagerTests {
 
-    @Test
-    void emptyTest() {
+    private Path tempDir;
 
-    }
+    /* ---------------- setup / teardown ---------------- */
 
-    @Test
-    void test() {
-        LoggerManager.configure()
-                .enableLogFiles(true)
-                .logDirectory("/home/dominik/Downloads/testLogDir")
-                .logFileLimit(3)
-                .compressOldLogFiles(true)
-                .done();
-
-        Logger logger = LoggerManager.getLogger(getClass());
-
-        logger.info("Hello World!");
-
-        LoggerManager.configure()
-                .enableLogFiles(false)
-                .done();
-
-        LoggerManager.configure()
-                .enableLogFiles(true)
-                .done();
-
-        logger.info("Hello World! 2");
-    }
-
-    /*private Path tempDir;
-
-    private void setupLogger(int fileLimit) throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         tempDir = Files.createTempDirectory("yajl-logtest-");
 
         LoggerManager.resetSettings();
         LoggerManager.configure()
                 .enableLogFiles(true)
                 .logDirectory(tempDir.toString())
-                .logFileLimit(fileLimit)
+                .compressOldLogFiles(true)
+                .compressedFileSizeLimit(1024 * 1024) // large enough not to delete
+                .logFileLimit(10)
                 .done();
-    }
-
-    private List<Path> listLogFiles() throws IOException {
-        try (var stream = Files.list(tempDir)) {
-            return stream
-                    .filter(p -> p.getFileName().toString().endsWith(".log"))
-                    .toList();
-        }
     }
 
     @AfterEach
     void cleanup() throws IOException {
-        if (tempDir != null && Files.exists(tempDir)) {
+        LoggerManager.configure()
+                .enableLogFiles(false)
+                .done();
+
+        if (Files.exists(tempDir)) {
             Files.walk(tempDir)
                     .sorted(Comparator.reverseOrder())
                     .forEach(p -> {
@@ -70,14 +52,40 @@ public class LogFileManagerTests {
         }
     }
 
-    @Test
-    void testLogFileIsCreatedAndWritten() throws Exception {
-        setupLogger(10);
+    /* ---------------- helpers ---------------- */
 
+    private @NonNull @Unmodifiable List<Path> listLogFiles() throws IOException {
+        try (var stream = Files.list(tempDir)) {
+            return stream
+                    .filter(p ->
+                            p.getFileName().toString().endsWith(".log") ||
+                                    p.getFileName().toString().endsWith(".log.gz")
+                    )
+                    .sorted()
+                    .toList();
+        }
+    }
+
+    private void forceRotation() {
+        LoggerManager.configure()
+                .enableLogFiles(false)
+                .done();
+
+        LoggerManager.configure()
+                .enableLogFiles(true)
+                .done();
+    }
+
+    /* ---------------- core behavior ---------------- */
+
+    @Test
+    void logFileIsCreatedAndWritten() throws Exception {
         Logger logger = LoggerManager.getLogger(getClass());
         logger.info("Hello World");
 
-        LoggerManager.getLogFileManager().shutdown();
+        LoggerManager.configure()
+                .enableLogFiles(false)
+                .done();
 
         List<Path> logs = listLogFiles();
         assertEquals(1, logs.size());
@@ -87,49 +95,117 @@ public class LogFileManagerTests {
     }
 
     @Test
-    void testAnsiIsStrippedBeforeWriting() throws Exception {
-        setupLogger(10);
-
+    void oldLogFilesAreCompressedOnRotation() throws Exception {
         Logger logger = LoggerManager.getLogger(getClass());
-        logger.info(
-                ColorTools.toAnsi(java.awt.Color.RED)
-                        + "RED_TEXT"
-                        + ColorTools.ANSI_RESET
-        );
 
-        LoggerManager.getLogFileManager().shutdown();
+        logger.info("First");
+        forceRotation();
 
-        String content = Files.readString(listLogFiles().getFirst());
+        logger.info("Second");
+        forceRotation();
 
-        assertFalse(content.contains("\u001B"), "ANSI escape code found in log file");
-        assertTrue(content.contains("RED_TEXT"));
+        logger.info("Third");
+
+        LoggerManager.configure()
+                .enableLogFiles(false)
+                .done();
+        List<Path> logs = listLogFiles();
+        assertEquals(3, logs.size());
+
+        assertEquals(2,
+                logs.stream().filter(p -> p.toString().endsWith(".gz")).count());
+        assertEquals(1,
+                logs.stream().filter(p -> p.toString().endsWith(".log")).count());
     }
 
     @Test
-    void testRotationDeletesOldFiles() throws Exception {
-        setupLogger(2);
+    void fileLimitCountsLogAndGzipFiles() throws Exception {
+        LoggerManager.configure()
+                .logFileLimit(2)
+                .done();
 
         Logger logger = LoggerManager.getLogger(getClass());
 
-        logger.info("Message 1");
-        logger.info("Message 2");
-        logger.info("Message 3");
+        logger.info("1");
+        forceRotation();
 
-        LoggerManager.getLogFileManager().shutdown();
+        logger.info("2");
+        forceRotation();
 
-        assertTrue(listLogFiles().size() <= 2);
+        logger.info("3");
+
+        LoggerManager.configure()
+                .enableLogFiles(false)
+                .done();
+
+        Thread.sleep(1000); // Let filesystem settle
+        List<Path> logs = listLogFiles();
+        assertEquals(2, logs.size());
+    }
+
+    /* ---------------- edge cases ---------------- */
+
+    @Test
+    void currentLogFileIsNeverDeletedByLimit() throws Exception {
+        LoggerManager.configure()
+                .logFileLimit(1)
+                .done();
+
+        Logger logger = LoggerManager.getLogger(getClass());
+
+        logger.info("Old");
+        forceRotation();
+
+        logger.info("Current");
+
+        Thread.sleep(1000); // Let filesystem settle
+        List<Path> logs = listLogFiles();
+        assertEquals(1, logs.size());
+        assertTrue(logs.getFirst().toString().endsWith(".log"));
     }
 
     @Test
-    void testShutdownFlushesQueueAndClosesCleanly() throws Exception {
-        setupLogger(10);
-
+    void shutdownFlushesAsyncQueue() throws Exception {
         Logger logger = LoggerManager.getLogger(getClass());
-        logger.info("FlushTest");
 
-        LoggerManager.getLogFileManager().shutdown();
+        for (int i = 0; i < 500; i++) {
+            logger.info("msg-" + i);
+        }
+
+        LoggerManager.configure()
+                .enableLogFiles(false)
+                .done();
 
         String content = Files.readString(listLogFiles().getFirst());
-        assertTrue(content.contains("FlushTest"));
-    }*/
+        assertTrue(content.contains("msg-0"));
+        assertTrue(content.contains("msg-499"));
+    }
+
+    @Test
+    void compressionFailureDoesNotDeleteOriginalFile() throws Exception {
+        LoggerManager.configure()
+                .compressedFileSizeLimit(0) // force deletion
+                .done();
+
+        Logger logger = LoggerManager.getLogger(getClass());
+        logger.info("This is a large enough message to exceed limit");
+        forceRotation();
+
+        LoggerManager.configure()
+                .enableLogFiles(false)
+                .done();
+
+        List<Path> logs = listLogFiles();
+        assertEquals(1, logs.size());
+        assertTrue(logs.getFirst().toString().endsWith(".log"));
+    }
+
+    @Test
+    void disablingLogFilesMultipleTimesIsIdempotent() {
+        assertDoesNotThrow(() -> {
+            LoggerManager.configure().enableLogFiles(false).done();
+            LoggerManager.configure().enableLogFiles(false).done();
+            LoggerManager.configure().enableLogFiles(false).done();
+        });
+    }
 }
