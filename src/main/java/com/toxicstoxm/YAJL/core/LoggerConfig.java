@@ -155,4 +155,16 @@ public class LoggerConfig {
             "which means the file count or size limit may never be reached."
     })
     private String logFileNamePattern = "log_{date}";
+
+    @Builder.Default
+    @YAMLSetting(name = "Exception-Handler-Padding-Size")
+    private int exceptionHandlerPaddingSize = 4;
+
+    @Builder.Default
+    @YAMLSetting(name = "Exception-Handler-Empty-Spaces")
+    private int exceptionHandlerEmptySpaces = 1;
+
+    @Builder.Default
+    @YAMLSetting.Ignore
+    private LogLevel exceptionHandlerDefaultLogLevel = LogLevels.WARN;
 }
