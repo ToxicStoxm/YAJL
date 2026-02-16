@@ -111,6 +111,9 @@ public class LoggerManager {
             logFileNamePattern(existingConfig.getLogFileNamePattern());
             internalLog(existingConfig.isInternalLog());
             internalLogOutput(existingConfig.getInternalLogOutput());
+            exceptionHandlerDefaultLogLevel(existingConfig.getExceptionHandlerDefaultLogLevel());
+            exceptionHandlerEmptySpaces(existingConfig.getExceptionHandlerEmptySpaces());
+            exceptionHandlerPaddingSize(existingConfig.getExceptionHandlerPaddingSize());
         }
 
         public LoggerBlueprint addLogFilterPattern(String pattern) {
@@ -240,6 +243,11 @@ public class LoggerManager {
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull Logger getVirtualLogger(@NotNull String area) {
         return new Logger(area, area);
+    }
+
+    @Contract(value = "_, _ -> new", pure = true)
+    public static @NotNull Logger getVirtualLogger(@NotNull String area, @NotNull String name) {
+        return new Logger(area, name);
     }
 
     public static void internalLog(String msg) {
