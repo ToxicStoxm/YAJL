@@ -181,4 +181,9 @@ public class Logger {
     public void fatal(String message, Object... args) {
         log(LogLevels.FATAL, message, args);
     }
+
+    @Override
+    public String toString() {
+        return "Logger [Prefix='" + logPrefix + "' Area='" + logArea + "']";
+    }
 }
