@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TraceTests {
     private static final Logger logger = LoggerManager.getLogger(LoggerTests.class);
-    private static final Logger virtuallogger = LoggerManager.getVirtualLogger("SomeVirutalArea");
 
     @Test
     void traceDefaultFormatTest() {
