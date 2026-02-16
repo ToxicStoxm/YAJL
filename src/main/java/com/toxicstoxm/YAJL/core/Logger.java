@@ -31,7 +31,7 @@ public class Logger {
 
         return settings.isMuteLogger() ||
                 settings.getLogFilter().isFiltered(logArea) ||
-                settings.getMinimumLogLevel() < level.getLevel();
+                level.getLevel() < settings.getMinimumLogLevel();
     }
 
     public void log(@NotNull LogLevel level, @NotNull String message, Object... args) {
