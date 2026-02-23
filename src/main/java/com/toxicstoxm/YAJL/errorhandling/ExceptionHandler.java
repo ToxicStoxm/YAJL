@@ -153,28 +153,6 @@ public class ExceptionHandler {
         StackTraceElement[] trace = throwable.getStackTrace();
         StackTraceElement originElement = trace[0];
         Class<?> originClass = ClassTools.getClassFromTraceElement(originElement);
-        /*if (originClass != null && originClass.isAnnotationPresent(ErrorHandling.class)) {
-            ErrorHandling e = originClass.getAnnotation(ErrorHandling.class);
-            String customMessage = e.customMessage();
-            if (!customMessage.isBlank()) {
-                Pattern pattern = Pattern.compile("\\{([^}]+)}");
-                Matcher matcher = pattern.matcher(customMessage);
-
-                while (matcher.find()) {
-                    String placeholder = matcher.group(1); // group 1 captures the content inside {}
-                    for (Field f : originClass.getDeclaredFields()) {
-                        if (f.isAnnotationPresent(ErrorVariable.class)) {
-                            ErrorVariable er = f.getAnnotation(ErrorVariable.class);
-                            if (er.name().equals(placeholder)) {
-                                f.setAccessible(true);
-
-                                // replace
-                            }
-                        }
-                    }
-                }
-            }
-        }*/
 
         // Parse the name of the class
         ClassName originClassName = ClassName.parse(originElement.getClassName());

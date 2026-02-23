@@ -3,11 +3,9 @@ package com.toxicstoxm.YAJL;
 import com.toxicstoxm.YAJL.core.Logger;
 import com.toxicstoxm.YAJL.core.LoggerManager;
 import com.toxicstoxm.YAJL.errorhandling.ClassLogger;
-import com.toxicstoxm.YAJL.errorhandling.ErrorHandling;
 import com.toxicstoxm.YAJL.errorhandling.ExceptionHandler;
 import org.junit.jupiter.api.Test;
 
-@ErrorHandling(customMessage = "Hello this is a test! {testing}")
 public class ExceptionHandlerTests {
     @ClassLogger
     private static final MyOwnKripplFichLogger sdfsdfs = new MyOwnKripplFichLogger("hello", "fichl");
