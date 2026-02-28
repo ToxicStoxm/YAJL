@@ -139,7 +139,7 @@ public class ExceptionHandler {
     }
 
 
-    public static void handle(@NotNull Throwable throwable, @Nullable String userMessage, @Nullable LogLevel logLevel) {
+    public static void handle(@NotNull Throwable throwable, @Nullable String userMessage, @Nullable LogLevel logLevel, @Nullable CustomErrorHandler customErrorHandler) {
         // Defaults here to allow function overloads to be simpler
         if (userMessage == null) {
             userMessage = "";
@@ -155,50 +155,35 @@ public class ExceptionHandler {
         Class<?> originClass = ClassTools.getClassFromTraceElement(originElement);
 
         // Parse the name of the class
-        ClassName originClassName = ClassName.parse(originElement.getClassName());
+        String originClassPath = originElement.getClassName();
 
         // Get the logger and the animation file
         Logger targetLogger = originClass == null ? null : ClassTools.getLoggerFromClass(originClass);
+        String originClassSimpleName = originClass == null ? "Unknown" : originClass.getSimpleName();
+
         // Spoof the logger if either the class can't be obtained or doesn't have a logger
         if (targetLogger == null) {
-            LoggerManager.internalLog("Failed to get logger of \"" + originClassName.path + "\"! Spoofing logger instead...");
-            targetLogger = LoggerManager.getVirtualLogger(originClassName.path, originClassName.simpleName);
+            LoggerManager.internalLog("Failed to get logger of \"" + originClassPath + "\"! Spoofing logger instead...");
+            targetLogger = LoggerManager.getVirtualLogger(originClassPath, originClassSimpleName);
         }
 
         // Construct and print the message
-        String source = originClassName.simpleName;
-        String extraInfo = constructMessage(throwable, userMessage, source, trace[trace.length - 1].getClassName());
+        String extraInfo = constructMessage(throwable, userMessage, originClassSimpleName, trace[trace.length - 1].getClassName());
+        if (customErrorHandler != null) {
+            customErrorHandler.handle(targetLogger, originClass, extraInfo);
+        }
         targetLogger.log(logLevel, extraInfo);
     }
 
     public static void handle(@NotNull Throwable throwable) {
-        handle(throwable, null, null);
+        handle(throwable, null, null, null);
     }
 
     public static void handle(@NotNull Throwable throwable, @Nullable String userMessage) {
-        handle(throwable, userMessage, null);
+        handle(throwable, userMessage, null, null);
     }
 
     public static void handle(@NotNull Throwable throwable, @Nullable LogLevel logLevel) {
-        handle(throwable, null, logLevel);
-    }
-
-    public record ClassName(String path, String simpleName, String simplePackage) {
-        @Contract("_ -> new")
-        public static @NotNull ClassName parse(@NotNull String path) {
-            int lastDot = path.lastIndexOf('.');
-            if (lastDot < 0) {
-                throw new IllegalArgumentException("Invalid ClassPath provided: \"" + path + "\"");
-            }
-
-            int secondLastDot = path.lastIndexOf('.', lastDot - 1);
-
-            String simpleName = path.substring(lastDot + 1);
-            String simplePackage = secondLastDot < 0
-                    ? path.substring(0, lastDot)
-                    : path.substring(secondLastDot + 1, lastDot);
-
-            return new ClassName(path, simpleName, simplePackage);
-        }
+        handle(throwable, null, logLevel, null);
     }
 }
