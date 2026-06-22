@@ -3,7 +3,7 @@ lombok = "1.18.44"
 jetbrains-annotations = "26.1.0"
 yajsi = "3.0.2"
 junit = "6.0.3"
-vanniktech-maven-publish = "0.36.0"
+vanniktech-maven-publish = "0.37.0"
 
 [libraries]
 lombok = { group = "org.projectlombok", name = "lombok", version.ref = "lombok" }
